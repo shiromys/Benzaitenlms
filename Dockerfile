@@ -1,1 +1,1 @@
-FROM bitnami/moodle:4.5.0
+FROM gcr.io/bitnami/moodle:4
