@@ -1,1 +1,1 @@
-FROM bitnami/moodle:4.5.0-debian-12-r1
+FROM moodlehq/moodle-php-apache:8.2
