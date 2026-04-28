@@ -1,1 +1,1 @@
-FROM docker.io/bitnami/moodle:4
+FROM bitnami/moodle:4.5.0
