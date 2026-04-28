@@ -1,1 +1,1 @@
-FROM gcr.io/bitnami/moodle:4
+FROM bitnami/moodle:4.5.0-debian-12-r1
