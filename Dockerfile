@@ -8,8 +8,10 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
 
-# Apache modules — required for Moodle's clean URLs
-RUN a2enmod rewrite headers
+# Apache modules — disable mpm_event first (conflicts with mpm_prefork)
+# then enable mpm_prefork plus rewrite and headers (needed for Moodle)
+RUN a2dismod mpm_event || true \
+    && a2enmod mpm_prefork rewrite headers
 
 # PHP settings Moodle needs
 RUN echo "max_input_vars = 5000\n\
