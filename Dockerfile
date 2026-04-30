@@ -8,40 +8,72 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
 
-# PHP settings Moodle needs
+# PHP settings
 RUN mkdir -p /opt/docker/etc/php/php.ini.d \
     && printf "max_input_vars = 5000\nmemory_limit = 256M\nupload_max_filesize = 100M\npost_max_size = 100M\nmax_execution_time = 300\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
 
-# Web root
 ENV WEB_DOCUMENT_ROOT=/var/www/html
 
 # Download Moodle 4.5
 RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
     | tar -xz --strip-components=1 -C /var/www/html
 
-# Copy config.php template (will be rendered at startup)
 COPY config.php /var/www/html/config.php.template
 
-# Permissions for code directory
 RUN chown -R application:application /var/www/html
-
-# Create moodledata mount point
 RUN mkdir -p /moodledata
 
-# Custom entrypoint: render config.php with ONLY specific variables substituted
-# (envsubst with explicit variable list won't expand $CFG, $i, etc.)
+# Custom entrypoint that:
+# 1. Renders config.php from template
+# 2. Verifies syntax
+# 3. Fixes /moodledata permissions
+# 4. Auto-installs Moodle if database is empty (one-time)
+# 5. Hands off to base entrypoint
 RUN cat > /usr/local/bin/init.sh << 'EOF'
 #!/bin/bash
 set -e
+
 echo "[startup] Rendering config.php from template..."
 envsubst '${MYSQLHOST} ${MYSQLDATABASE} ${MYSQLUSER} ${MYSQLPASSWORD} ${MYSQLPORT} ${RAILWAY_PUBLIC_DOMAIN}' \
   < /var/www/html/config.php.template > /var/www/html/config.php
 chown application:application /var/www/html/config.php
+
 echo "[startup] Verifying config.php syntax..."
 php -l /var/www/html/config.php
+
 echo "[startup] Fixing /moodledata permissions..."
 chown -R application:application /moodledata
 chmod -R 775 /moodledata
+
+# Wait for MySQL to be reachable (up to 60s)
+echo "[startup] Waiting for MySQL to be ready..."
+for i in {1..30}; do
+  if mysql -h"${MYSQLHOST}" -P"${MYSQLPORT}" -u"${MYSQLUSER}" -p"${MYSQLPASSWORD}" -e "SELECT 1" "${MYSQLDATABASE}" > /dev/null 2>&1; then
+    echo "[startup] MySQL is ready."
+    break
+  fi
+  echo "[startup] MySQL not ready yet, retrying ($i/30)..."
+  sleep 2
+done
+
+# Check if Moodle is already installed (look for mdl_config table)
+TABLE_EXISTS=$(mysql -h"${MYSQLHOST}" -P"${MYSQLPORT}" -u"${MYSQLUSER}" -p"${MYSQLPASSWORD}" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${MYSQLDATABASE}' AND table_name='mdl_config'" 2>/dev/null || echo "0")
+
+if [ "$TABLE_EXISTS" -eq "0" ]; then
+  echo "[startup] Database is empty. Running Moodle CLI installer..."
+  sudo -u application php /var/www/html/admin/cli/install_database.php \
+    --agree-license \
+    --fullname="${MOODLE_FULLNAME:-Benzaiten LMS}" \
+    --shortname="${MOODLE_SHORTNAME:-Benzaiten}" \
+    --adminuser="${MOODLE_ADMIN_USER:-admin}" \
+    --adminpass="${MOODLE_ADMIN_PASS:-Admin@123456}" \
+    --adminemail="${MOODLE_ADMIN_EMAIL:-admin@example.com}" \
+    --non-interactive
+  echo "[startup] Moodle install completed."
+else
+  echo "[startup] Moodle already installed, skipping installer."
+fi
+
 echo "[startup] Handing off to base entrypoint..."
 exec /opt/docker/bin/entrypoint.sh "$@"
 EOF
