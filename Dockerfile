@@ -59,8 +59,7 @@ if [ "$TABLE_EXISTS" -eq "0" ]; then
     --shortname=\"${MOODLE_SHORTNAME:-Benzaiten}\" \
     --adminuser=\"${MOODLE_ADMIN_USER:-admin}\" \
     --adminpass=\"${MOODLE_ADMIN_PASS:-Admin@123456}\" \
-    --adminemail=\"${MOODLE_ADMIN_EMAIL:-admin@example.com}\" \
-    --non-interactive"
+    --adminemail=\"${MOODLE_ADMIN_EMAIL:-admin@example.com}\""
   echo "[startup] Moodle install completed."
 else
   echo "[startup] Moodle already installed, skipping installer."
