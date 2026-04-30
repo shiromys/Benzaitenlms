@@ -23,12 +23,6 @@ COPY config.php /var/www/html/config.php.template
 RUN chown -R application:application /var/www/html
 RUN mkdir -p /moodledata
 
-# Custom entrypoint that:
-# 1. Renders config.php from template
-# 2. Verifies syntax
-# 3. Fixes /moodledata permissions
-# 4. Auto-installs Moodle if database is empty (one-time)
-# 5. Hands off to base entrypoint
 RUN cat > /usr/local/bin/init.sh << 'EOF'
 #!/bin/bash
 set -e
@@ -45,7 +39,6 @@ echo "[startup] Fixing /moodledata permissions..."
 chown -R application:application /moodledata
 chmod -R 775 /moodledata
 
-# Wait for MySQL to be reachable (up to 60s)
 echo "[startup] Waiting for MySQL to be ready..."
 for i in {1..30}; do
   if mysql -h"${MYSQLHOST}" -P"${MYSQLPORT}" -u"${MYSQLUSER}" -p"${MYSQLPASSWORD}" -e "SELECT 1" "${MYSQLDATABASE}" > /dev/null 2>&1; then
@@ -56,19 +49,18 @@ for i in {1..30}; do
   sleep 2
 done
 
-# Check if Moodle is already installed (look for mdl_config table)
 TABLE_EXISTS=$(mysql -h"${MYSQLHOST}" -P"${MYSQLPORT}" -u"${MYSQLUSER}" -p"${MYSQLPASSWORD}" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${MYSQLDATABASE}' AND table_name='mdl_config'" 2>/dev/null || echo "0")
 
 if [ "$TABLE_EXISTS" -eq "0" ]; then
-  echo "[startup] Database is empty. Running Moodle CLI installer..."
-  sudo -u application php /var/www/html/admin/cli/install_database.php \
+  echo "[startup] Database is empty. Running Moodle CLI installer as 'application' user..."
+  su application -s /bin/bash -c "php /var/www/html/admin/cli/install_database.php \
     --agree-license \
-    --fullname="${MOODLE_FULLNAME:-Benzaiten LMS}" \
-    --shortname="${MOODLE_SHORTNAME:-Benzaiten}" \
-    --adminuser="${MOODLE_ADMIN_USER:-admin}" \
-    --adminpass="${MOODLE_ADMIN_PASS:-Admin@123456}" \
-    --adminemail="${MOODLE_ADMIN_EMAIL:-admin@example.com}" \
-    --non-interactive
+    --fullname=\"${MOODLE_FULLNAME:-Benzaiten LMS}\" \
+    --shortname=\"${MOODLE_SHORTNAME:-Benzaiten}\" \
+    --adminuser=\"${MOODLE_ADMIN_USER:-admin}\" \
+    --adminpass=\"${MOODLE_ADMIN_PASS:-Admin@123456}\" \
+    --adminemail=\"${MOODLE_ADMIN_EMAIL:-admin@example.com}\" \
+    --non-interactive"
   echo "[startup] Moodle install completed."
 else
   echo "[startup] Moodle already installed, skipping installer."
