@@ -8,10 +8,16 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
 
-# Apache modules — disable mpm_event first (conflicts with mpm_prefork)
-# then enable mpm_prefork plus rewrite and headers (needed for Moodle)
-RUN a2dismod mpm_event || true \
-    && a2enmod mpm_prefork rewrite headers
+# Force exactly ONE MPM by removing all MPM symlinks first, then enabling only prefork
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.conf /etc/apache2/mods-enabled/mpm_*.load \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load
+
+# Enable rewrite and headers (needed for Moodle clean URLs)
+RUN a2enmod rewrite headers
+
+# Verify only one MPM is loaded (build will fail clearly if not)
+RUN ls /etc/apache2/mods-enabled/mpm_*.load | wc -l | grep -q "^1$"
 
 # PHP settings Moodle needs
 RUN echo "max_input_vars = 5000\n\
