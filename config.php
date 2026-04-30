@@ -1,20 +1,31 @@
 <?php  // Moodle configuration file
-
 unset($CFG);
 global $CFG;
 $CFG = new stdClass();
 
-$CFG->dbtype    = 'mariadb';
+// Database configuration — read from Railway env vars
+$CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
-$CFG->dbhost    = 'mysql.railway.internal';
-$CFG->dbname    = 'moodle_db';
-$CFG->dbuser    = 'root';
-$CFG->dbpass    = 'YOUR_RAILWAY_PASSWORD'; // Paste your actual password here
-$CFG->dbport    = '3306';
+$CFG->dbhost    = getenv('MYSQLHOST');
+$CFG->dbname    = getenv('MYSQLDATABASE');
+$CFG->dbuser    = getenv('MYSQLUSER');
+$CFG->dbpass    = getenv('MYSQLPASSWORD');
 $CFG->prefix    = 'mdl_';
+$CFG->dboptions = array(
+    'dbpersist'   => 0,
+    'dbport'      => getenv('MYSQLPORT'),
+    'dbsocket'    => '',
+    'dbcollation' => 'utf8mb4_unicode_ci',
+);
 
-$CFG->wwwroot   = 'https://benzaitenlms-production.up.railway.app';
-$CFG->dataroot  = '/moodledata';
-$CFG->directorypermissions = 0777;
+// Site URL and reverse proxy settings — these fix your HTTPS issue
+$CFG->wwwroot      = 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN');
+$CFG->sslproxy     = true;
+$CFG->reverseproxy = true;
+
+// File storage
+$CFG->dataroot     = '/moodledata';
+$CFG->directorypermissions = 02777;
+$CFG->admin        = 'admin';
 
 require_once(__DIR__ . '/lib/setup.php');
