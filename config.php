@@ -18,10 +18,15 @@ $CFG->dboptions = array(
     'dbcollation' => 'utf8mb4_unicode_ci',
 );
 
-// Site URL and reverse proxy settings — fixes the HTTPS issue
+// Site URL
 $CFG->wwwroot      = 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN');
+
+// SSL termination at Railway edge — tells Moodle the user-facing URL is HTTPS
 $CFG->sslproxy     = true;
-$CFG->reverseproxy = true;
+
+// Note: reverseproxy is intentionally NOT set to true here.
+// Setting it to true triggers a strict guard that doesn't play well with
+// Railway's proxy setup. sslproxy alone is enough for HTTPS handling.
 
 // File storage
 $CFG->dataroot     = '/moodledata';
