@@ -8,12 +8,10 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
 
-# PHP settings Moodle needs
-RUN echo "max_input_vars = 5000\n\
-memory_limit = 256M\n\
-upload_max_filesize = 100M\n\
-post_max_size = 100M\n\
-max_execution_time = 300" > /opt/docker/etc/php/php.ini.d/moodle.ini
+# Create PHP config directory (webdevops image doesn't create it at build time)
+# and write Moodle's required PHP settings into it
+RUN mkdir -p /opt/docker/etc/php/php.ini.d \
+    && printf "max_input_vars = 5000\nmemory_limit = 256M\nupload_max_filesize = 100M\npost_max_size = 100M\nmax_execution_time = 300\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
 
 # Web root that webdevops/php-nginx serves from
 ENV WEB_DOCUMENT_ROOT=/var/www/html
@@ -25,7 +23,7 @@ RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-lat
 # Copy your config.php into the image
 COPY config.php /var/www/html/config.php
 
-# Permissions — webdevops image uses application user www-data
+# Permissions
 RUN chown -R www-data:www-data /var/www/html
 
 # Create moodledata mount point with correct ownership
