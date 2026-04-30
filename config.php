@@ -1,32 +1,28 @@
-<?php  // Moodle configuration file
+<?php  // Moodle configuration file (rendered at container startup from template)
 unset($CFG);
 global $CFG;
 $CFG = new stdClass();
 
-// Database configuration — read from Railway env vars
+// Database configuration — values substituted at startup from env vars
 $CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
-$CFG->dbhost    = getenv('MYSQLHOST');
-$CFG->dbname    = getenv('MYSQLDATABASE');
-$CFG->dbuser    = getenv('MYSQLUSER');
-$CFG->dbpass    = getenv('MYSQLPASSWORD');
+$CFG->dbhost    = '${MYSQLHOST}';
+$CFG->dbname    = '${MYSQLDATABASE}';
+$CFG->dbuser    = '${MYSQLUSER}';
+$CFG->dbpass    = '${MYSQLPASSWORD}';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist'   => 0,
-    'dbport'      => getenv('MYSQLPORT'),
+    'dbport'      => '${MYSQLPORT}',
     'dbsocket'    => '',
     'dbcollation' => 'utf8mb4_unicode_ci',
 );
 
 // Site URL
-$CFG->wwwroot      = 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN');
+$CFG->wwwroot      = 'https://${RAILWAY_PUBLIC_DOMAIN}';
 
-// SSL termination at Railway edge — tells Moodle the user-facing URL is HTTPS
+// SSL termination at Railway edge
 $CFG->sslproxy     = true;
-
-// Note: reverseproxy is intentionally NOT set to true here.
-// Setting it to true triggers a strict guard that doesn't play well with
-// Railway's proxy setup. sslproxy alone is enough for HTTPS handling.
 
 // File storage
 $CFG->dataroot     = '/moodledata';
