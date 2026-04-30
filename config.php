@@ -29,4 +29,9 @@ $CFG->dataroot     = '/moodledata';
 $CFG->directorypermissions = 02777;
 $CFG->admin        = 'admin';
 
+// DEBUG MODE — temporarily on to expose actual database errors
+// Remove these two lines after install completes
+$CFG->debug        = 32767;
+$CFG->debugdisplay = 1;
+
 require_once(__DIR__ . '/lib/setup.php');
