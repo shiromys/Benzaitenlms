@@ -15,10 +15,6 @@ RUN mkdir -p /opt/docker/etc/php/php.ini.d \
 # Web root
 ENV WEB_DOCUMENT_ROOT=/var/www/html
 
-# Disable PHP-FPM clear_env so env vars pass through to PHP
-RUN sed -i 's/^clear_env = .*/clear_env = no/' /opt/docker/etc/php/fpm/pool.d/application.conf || true \
-    && echo "clear_env = no" >> /usr/local/etc/php-fpm.d/zz-docker.conf 2>/dev/null || true
-
 # Download Moodle 4.5
 RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
     | tar -xz --strip-components=1 -C /var/www/html
@@ -32,12 +28,24 @@ RUN chown -R application:application /var/www/html
 # Create moodledata mount point
 RUN mkdir -p /moodledata
 
-# Custom entrypoint:
-# 1. Render config.php from template using current env vars (bypasses PHP-FPM clear_env)
-# 2. Fix /moodledata permissions (Railway volume mount overrides build-time chown)
-# 3. Hand off to the image's normal entrypoint
-RUN printf '#!/bin/bash\nset -e\necho "[startup] Rendering config.php from template..."\nenvsubst < /var/www/html/config.php.template > /var/www/html/config.php\nchown application:application /var/www/html/config.php\necho "[startup] Fixing /moodledata permissions..."\nchown -R application:application /moodledata\nchmod -R 775 /moodledata\necho "[startup] Handing off to base entrypoint..."\nexec /opt/docker/bin/entrypoint.sh "$@"\n' > /usr/local/bin/init.sh \
-    && chmod +x /usr/local/bin/init.sh
+# Custom entrypoint: render config.php with ONLY specific variables substituted
+# (envsubst with explicit variable list won't expand $CFG, $i, etc.)
+RUN cat > /usr/local/bin/init.sh << 'EOF'
+#!/bin/bash
+set -e
+echo "[startup] Rendering config.php from template..."
+envsubst '${MYSQLHOST} ${MYSQLDATABASE} ${MYSQLUSER} ${MYSQLPASSWORD} ${MYSQLPORT} ${RAILWAY_PUBLIC_DOMAIN}' \
+  < /var/www/html/config.php.template > /var/www/html/config.php
+chown application:application /var/www/html/config.php
+echo "[startup] Verifying config.php syntax..."
+php -l /var/www/html/config.php
+echo "[startup] Fixing /moodledata permissions..."
+chown -R application:application /moodledata
+chmod -R 775 /moodledata
+echo "[startup] Handing off to base entrypoint..."
+exec /opt/docker/bin/entrypoint.sh "$@"
+EOF
+RUN chmod +x /usr/local/bin/init.sh
 
 ENTRYPOINT ["/usr/local/bin/init.sh"]
 CMD ["supervisord"]
