@@ -18,7 +18,7 @@ $CFG->dboptions = array(
     'dbcollation' => 'utf8mb4_unicode_ci',
 );
 
-// Site URL and reverse proxy settings — these fix your HTTPS issue
+// Site URL and reverse proxy settings — fixes the HTTPS issue
 $CFG->wwwroot      = 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN');
 $CFG->sslproxy     = true;
 $CFG->reverseproxy = true;

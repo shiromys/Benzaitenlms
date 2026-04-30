@@ -4,11 +4,11 @@ FROM php:8.2-apache
 RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libicu-dev libxml2-dev libzip-dev zlib1g-dev \
     mariadb-client curl \
-    && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && docker-php-ext-configure gd --with-jpeg \
+    && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
 
-# Apache config — required for Moodle's .htaccess and clean URLs
+# Apache modules — required for Moodle's clean URLs
 RUN a2enmod rewrite headers
 
 # PHP settings Moodle needs
@@ -18,7 +18,7 @@ upload_max_filesize = 100M\n\
 post_max_size = 100M\n\
 max_execution_time = 300" > /usr/local/etc/php/conf.d/moodle.ini
 
-# Download Moodle at BUILD time (not runtime — cleaner and faster startups)
+# Download Moodle 4.5 at BUILD time
 RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
     | tar -xz --strip-components=1 -C /var/www/html
 
