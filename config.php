@@ -3,7 +3,7 @@ unset($CFG);
 global $CFG;
 $CFG = new stdClass();
 
-// Database configuration — values substituted at startup from env vars
+// Database configuration
 $CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
 $CFG->dbhost    = '${MYSQLHOST}';
@@ -21,17 +21,18 @@ $CFG->dboptions = array(
 // Site URL
 $CFG->wwwroot      = 'https://${RAILWAY_PUBLIC_DOMAIN}';
 
-// SSL termination at Railway edge
+// SSL & reverse proxy settings — Railway terminates SSL at edge
 $CFG->sslproxy     = true;
+$CFG->reverseproxy = true;
 
 // File storage
 $CFG->dataroot     = '/moodledata';
 $CFG->directorypermissions = 02777;
 $CFG->admin        = 'admin';
 
-// DEBUG MODE — temporarily on to expose actual database errors
-// Remove these two lines after install completes
-$CFG->debug        = 32767;
-$CFG->debugdisplay = 1;
+// Skip the strict reverse proxy IP check that previously caused 500 errors.
+// Railway's edge proxy IPs are dynamic, so we can't list them. This tells Moodle
+// to trust X-Forwarded-* headers without validating their source IP.
+$CFG->reverseproxyignore = '0.0.0.0/0,::/0';
 
 require_once(__DIR__ . '/lib/setup.php');
