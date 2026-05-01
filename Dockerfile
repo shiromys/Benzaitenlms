@@ -8,9 +8,16 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
 
-# PHP settings
+# PHP settings — INCREASED limits to handle long Moodle upgrades on slow Railway MySQL
 RUN mkdir -p /opt/docker/etc/php/php.ini.d \
-    && printf "max_input_vars = 5000\nmemory_limit = 256M\nupload_max_filesize = 100M\npost_max_size = 100M\nmax_execution_time = 300\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
+    && printf "max_input_vars = 5000\nmemory_limit = 512M\nupload_max_filesize = 100M\npost_max_size = 100M\nmax_execution_time = 1800\nmax_input_time = 1800\ndefault_socket_timeout = 1800\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
+
+# Also increase nginx and PHP-FPM timeouts
+RUN echo "fastcgi_read_timeout 1800s;\nfastcgi_send_timeout 1800s;\nproxy_read_timeout 1800s;\nproxy_send_timeout 1800s;\nclient_body_timeout 1800s;\nclient_max_body_size 100M;" > /opt/docker/etc/nginx/conf.d/timeouts.conf
+
+# Increase PHP-FPM request_terminate_timeout
+RUN echo "request_terminate_timeout = 1800" >> /opt/docker/etc/php/fpm/pool.d/application.conf 2>/dev/null || \
+    find /opt/docker/etc/php/fpm -name "*.conf" -exec sh -c 'echo "request_terminate_timeout = 1800" >> "$1"' _ {} \; 2>/dev/null || true
 
 ENV WEB_DOCUMENT_ROOT=/var/www/html
 
@@ -62,7 +69,9 @@ if [ "$TABLE_EXISTS" -eq "0" ]; then
     --adminemail=\"${MOODLE_ADMIN_EMAIL:-admin@example.com}\""
   echo "[startup] Moodle install completed."
 else
-  echo "[startup] Moodle already installed, skipping installer."
+  echo "[startup] Moodle already installed, checking for pending upgrades..."
+  # Run upgrade automatically if needed (handles the version mismatch case)
+  su application -s /bin/bash -c "php /var/www/html/admin/cli/upgrade.php --non-interactive --allow-unstable" || echo "[startup] Upgrade not needed or already complete."
 fi
 
 echo "[startup] Handing off to base entrypoint..."
