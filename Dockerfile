@@ -17,8 +17,8 @@ RUN echo "fastcgi_read_timeout 1800s;\nfastcgi_send_timeout 1800s;\nproxy_read_t
 
 ENV WEB_DOCUMENT_ROOT=/var/www/html
 
-# Lock to specific Moodle 4.5.5 release (avoids version-mismatch on every redeploy)
-RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-4.5.5.tgz \
+# Use latest Moodle 4.5.x stable release (matches what database expects)
+RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
     | tar -xz --strip-components=1 -C /var/www/html
 
 COPY config.php /var/www/html/config.php.template
