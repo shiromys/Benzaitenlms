@@ -1,4 +1,4 @@
-<?php  // Moodle configuration file (rendered at container startup from template)
+<?php  // Moodle configuration file
 unset($CFG);
 global $CFG;
 $CFG = new stdClass();
@@ -21,15 +21,22 @@ $CFG->dboptions = array(
 // Site URL
 $CFG->wwwroot      = 'https://${RAILWAY_PUBLIC_DOMAIN}';
 
-// SSL termination at Railway edge
+// SSL & proxy settings — Railway terminates SSL at edge
 $CFG->sslproxy     = true;
+
+// Cookie settings — explicit for HTTPS behind reverse proxy
+$CFG->cookiesecure = true;
+$CFG->cookiehttponly = true;
+
+// Use ?file= query string instead of /file/path URLs (works around nginx PATH_INFO quirks)
+$CFG->slasharguments = false;
 
 // File storage
 $CFG->dataroot     = '/moodledata';
 $CFG->directorypermissions = 02777;
 $CFG->admin        = 'admin';
 
-// Skip site registration prompt (was blocking asset loads)
+// Suppress site registration nag
 $CFG->registerauth = '';
 
 require_once(__DIR__ . '/lib/setup.php');
