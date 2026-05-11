@@ -22,22 +22,25 @@ RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-lat
     | tar -xz --strip-components=1 -C /var/www/html
 
 # Install Snap Theme 4.5.4
-RUN curl -L https://moodle.org/plugins/download.php/41197/theme_snap_moodle45_2026032600.zip \
-    && unzip -q /tmp/snap.zip -d /tmp/snap_extracted \
-    && mv /tmp/snap_extracted/snap /var/www/html/theme/snap \
-    && rm -rf /tmp/snap.zip /tmp/snap_extracted
+RUN curl -L -o /tmp/snap.zip "https://github.com/open-lms-open-source/moodle-theme_snap/archive/refs/heads/master.zip" \
+    && unzip -q /tmp/snap.zip -d /tmp/ \
+    && mv /tmp/moodle-theme_snap-4.5.4 /var/www/html/theme/snap \
+    && rm /tmp/snap.zip
+
 
 # Install Stripe Payment Gateway 1.30
-RUN curl -L https://moodle.org/plugins/download.php/37921/paygw_stripe_moodle51_2025091700.zip \
-    && unzip -q /tmp/stripe.zip -d /tmp/stripe_extracted \
-    && mv /tmp/stripe_extracted/stripe /var/www/html/payment/gateway/stripe \
-    && rm -rf /tmp/stripe.zip /tmp/stripe_extracted
+RUN curl -L -o /tmp/stripe.zip "https://github.com/alexmorrisnz/moodle-paygw_stripe/archive/refs/heads/master.zip" \
+    && unzip -q /tmp/stripe.zip -d /tmp/ \
+    && mv /tmp/moodle-paygw_stripe-main /var/www/html/payment/gateway/stripe \
+    && rm /tmp/stripe.zip
+
 
 # Install Custom Certificate 4.4.9
-RUN curl -L https://moodle.org/plugins/download.php/40562/mod_customcert_moodle45_2024042217.zip \
-    && unzip -q /tmp/customcert.zip -d /tmp/customcert_extracted \
-    && mv /tmp/customcert_extracted/customcert /var/www/html/mod/customcert \
-    && rm -rf /tmp/customcert.zip /tmp/customcert_extracted
+RUN curl -L -o /tmp/customcert.zip "https://github.com/mdjnelson/moodle-mod_customcert/archive/refs/heads/master.zip" \
+    && unzip -q /tmp/customcert.zip -d /tmp/ \
+    && mv /tmp/moodle-mod_customcert-4.4.9 /var/www/html/mod/customcert \
+    && rm /tmp/customcert.zip
+
 
 COPY config.php /var/www/html/config.php.template
 RUN chown -R application:application /var/www/html
