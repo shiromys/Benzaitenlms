@@ -20,6 +20,13 @@ ENV WEB_DOCUMENT_ROOT=/var/www/html
 # Download Moodle 4.5.x stable
 RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
     | tar -xz --strip-components=1 -C /var/www/html
+    
+# Install Snap Theme
+RUN curl -L -o /tmp/snap.zip \
+    "https://github.com/open-lms-open-source/moodle-theme_snap/archive/refs/heads/master.zip" \
+    && unzip -q /tmp/snap.zip -d /tmp/snap_out \
+    && mv /tmp/snap_out/moodle-theme_snap-* /var/www/html/theme/snap \
+    && rm -rf /tmp/snap.zip /tmp/snap_out
 
 # Install Stripe Payment Gateway only
 RUN curl -L -o /tmp/stripe.zip \
