@@ -8,23 +8,9 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
 
-# PHP settings — tuned for Moodle with OPcache
+# PHP settings — original
 RUN mkdir -p /opt/docker/etc/php/php.ini.d \
-    && printf "max_input_vars = 5000\n\
-memory_limit = 512M\n\
-upload_max_filesize = 100M\n\
-post_max_size = 100M\n\
-max_execution_time = 1800\n\
-max_input_time = 1800\n\
-default_socket_timeout = 1800\n\
-opcache.enable=1\n\
-opcache.memory_consumption=512\n\
-opcache.max_accelerated_files=32531\n\
-opcache.validate_timestamps=0\n\
-opcache.interned_strings_buffer=32\n\
-opcache.revalidate_freq=0\n\
-opcache.fast_shutdown=1\n\
-opcache.enable_cli=1\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
+    && printf "max_input_vars = 5000\nmemory_limit = 512M\nupload_max_filesize = 100M\npost_max_size = 100M\nmax_execution_time = 1800\nmax_input_time = 1800\ndefault_socket_timeout = 1800\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
 
 # nginx timeouts for long-running requests
 RUN echo "fastcgi_read_timeout 1800s;\nfastcgi_send_timeout 1800s;\nproxy_read_timeout 1800s;\nproxy_send_timeout 1800s;\nclient_body_timeout 1800s;\nclient_max_body_size 100M;" > /opt/docker/etc/nginx/conf.d/timeouts.conf
@@ -46,13 +32,7 @@ COPY config.php /var/www/html/config.php.template
 
 RUN chown -R application:application /var/www/html
 
-# Create moodledata directories
-RUN mkdir -p /moodledata/cache \
-    && mkdir -p /moodledata/localcache \
-    && mkdir -p /moodledata/temp \
-    && mkdir -p /moodledata/sessions \
-    && mkdir -p /moodledata/trashdir \
-    && mkdir -p /moodledata/filedir
+RUN mkdir -p /moodledata
 
 RUN cat > /usr/local/bin/init.sh << 'EOF'
 #!/bin/bash
@@ -69,11 +49,6 @@ php -l /var/www/html/config.php
 echo "[startup] Fixing /moodledata permissions..."
 chown -R application:application /moodledata
 chmod -R 775 /moodledata
-
-echo "[startup] Mounting tmpfs RAM disk for cache..."
-mount -t tmpfs -o size=4G tmpfs /moodledata/cache || echo "[startup] tmpfs cache mount skipped"
-mount -t tmpfs -o size=2G tmpfs /moodledata/localcache || echo "[startup] tmpfs localcache mount skipped"
-mount -t tmpfs -o size=1G tmpfs /moodledata/temp || echo "[startup] tmpfs temp mount skipped"
 
 echo "[startup] Waiting for MySQL to be ready..."
 for i in {1..30}; do
