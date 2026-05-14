@@ -29,7 +29,7 @@ $CFG->cookiesecure = true;
 $CFG->cookiehttponly = true;
 
 // Use ?file= query string instead of /file/path URLs
-$CFG->slasharguments = false;
+$CFG->slasharguments = true;
 
 // File storage
 $CFG->dataroot     = '/moodledata';
