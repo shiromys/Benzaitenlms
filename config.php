@@ -19,7 +19,7 @@ $CFG->dboptions = array(
 );
 
 // Site URL
-$CFG->wwwroot      = 'https://${RAILWAY_PUBLIC_DOMAIN}';
+$CFG->wwwroot      = 'https://api.benzaitenlms.com';
 
 // SSL & proxy settings
 $CFG->sslproxy     = true;
