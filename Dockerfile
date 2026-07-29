@@ -1,5 +1,4 @@
 FROM webdevops/php-nginx:8.2
-
 # Install Moodle PHP dependencies
 RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libicu-dev libxml2-dev libzip-dev zlib1g-dev \
@@ -7,21 +6,15 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-jpeg \
     && docker-php-ext-install gd intl mysqli opcache xml zip soap \
     && rm -rf /var/lib/apt/lists/*
-
 # PHP settings — tuned for Moodle on Railway
 RUN mkdir -p /opt/docker/etc/php/php.ini.d \
     && printf "max_input_vars = 5000\nmemory_limit = 512M\nupload_max_filesize = 100M\npost_max_size = 100M\nmax_execution_time = 1800\nmax_input_time = 1800\ndefault_socket_timeout = 1800\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
-
 # nginx timeouts for long-running requests
 RUN echo "fastcgi_read_timeout 1800s;\nfastcgi_send_timeout 1800s;\nproxy_read_timeout 1800s;\nproxy_send_timeout 1800s;\nclient_body_timeout 1800s;\nclient_max_body_size 100M;" > /opt/docker/etc/nginx/conf.d/timeouts.conf
-
 ENV WEB_DOCUMENT_ROOT=/var/www/html
-
 # Download Moodle 4.5.x stable
 RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
     | tar -xz --strip-components=1 -C /var/www/html
-    
-
 
 # Install Stripe Payment Gateway only
 RUN curl -L -o /tmp/stripe.zip \
@@ -30,10 +23,38 @@ RUN curl -L -o /tmp/stripe.zip \
     && mv /tmp/stripe_out/moodle-paygw_stripe-* /var/www/html/payment/gateway/stripe \
     && rm -rf /tmp/stripe.zip /tmp/stripe_out
 
+# ---- Baked-in plugins: survive every rebuild ----
+
+# Snap theme (Moodle 4.5 line, release 4.5.4)
+RUN curl -fL -o /tmp/snap.zip \
+    "https://github.com/open-lms-open-source/moodle-theme_snap/archive/refs/heads/MOODLE_405_STABLE.zip" \
+    && unzip -tq /tmp/snap.zip \
+    && rm -rf /var/www/html/theme/snap \
+    && unzip -q /tmp/snap.zip -d /tmp/snap_out \
+    && mv /tmp/snap_out/moodle-theme_snap-* /var/www/html/theme/snap \
+    && rm -rf /tmp/snap.zip /tmp/snap_out
+
+# Custom Certificate (Moodle 4.4 line = the 4.5-compatible one, release 4.4.10)
+RUN curl -fL -o /tmp/cc.zip \
+    "https://github.com/mdjnelson/moodle-mod_customcert/archive/refs/heads/MOODLE_404_STABLE.zip" \
+    && unzip -tq /tmp/cc.zip \
+    && rm -rf /var/www/html/mod/customcert \
+    && unzip -q /tmp/cc.zip -d /tmp/cc_out \
+    && mv /tmp/cc_out/moodle-mod_customcert-* /var/www/html/mod/customcert \
+    && rm -rf /tmp/cc.zip /tmp/cc_out
+
+# auth_userkey (auto-login for the pay-first flow, Moodle 4.5 line)
+RUN curl -fL -o /tmp/uk.zip \
+    "https://github.com/catalyst/moodle-auth_userkey/archive/refs/heads/MOODLE_405_STABLE.zip" \
+    && unzip -tq /tmp/uk.zip \
+    && rm -rf /var/www/html/auth/userkey \
+    && unzip -q /tmp/uk.zip -d /tmp/uk_out \
+    && mv /tmp/uk_out/moodle-auth_userkey-* /var/www/html/auth/userkey \
+    && rm -rf /tmp/uk.zip /tmp/uk_out
+
 COPY config.php /var/www/html/config.php.template
 RUN chown -R application:application /var/www/html
 RUN mkdir -p /moodledata
-
 RUN cat > /usr/local/bin/init.sh << 'EOF'
 #!/bin/bash
 set -e
@@ -75,7 +96,6 @@ fi
 echo "[startup] Handing off to base entrypoint..."
 exec /opt/docker/bin/entrypoint.sh "$@"
 EOF
-
 RUN chmod +x /usr/local/bin/init.sh
 ENTRYPOINT ["/usr/local/bin/init.sh"]
 CMD ["supervisord"]
