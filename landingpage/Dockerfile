@@ -6,5 +6,4 @@ ENV PORT=8080
 ENV NGINX_ENVSUBST_FILTER=PORT
 COPY default.conf.template /etc/nginx/templates/default.conf.template
 COPY site/ /usr/share/nginx/html
-COPY robots.txt /usr/share/nginx/html/robots.txt
-COPY sitemap.xml /usr/share/nginx/html/sitemap.xml
+
