@@ -15,16 +15,13 @@ ENV WEB_DOCUMENT_ROOT=/var/www/html
 # Download Moodle 4.5.x stable
 RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
     | tar -xz --strip-components=1 -C /var/www/html
-
 # Install Stripe Payment Gateway only
 RUN curl -L -o /tmp/stripe.zip \
     "https://github.com/alexmorrisnz/moodle-paygw_stripe/archive/refs/heads/master.zip" \
     && unzip -q /tmp/stripe.zip -d /tmp/stripe_out \
     && mv /tmp/stripe_out/moodle-paygw_stripe-* /var/www/html/payment/gateway/stripe \
     && rm -rf /tmp/stripe.zip /tmp/stripe_out
-
 # ---- Baked-in plugins: survive every rebuild ----
-
 # Snap theme (Moodle 4.5 line, release 4.5.4)
 RUN curl -fL -o /tmp/snap.zip \
     "https://github.com/open-lms-open-source/moodle-theme_snap/archive/refs/heads/MOODLE_405_STABLE.zip" \
@@ -33,7 +30,6 @@ RUN curl -fL -o /tmp/snap.zip \
     && unzip -q /tmp/snap.zip -d /tmp/snap_out \
     && mv /tmp/snap_out/moodle-theme_snap-* /var/www/html/theme/snap \
     && rm -rf /tmp/snap.zip /tmp/snap_out
-
 # Custom Certificate (Moodle 4.4 line = the 4.5-compatible one, release 4.4.10)
 RUN curl -fL -o /tmp/cc.zip \
     "https://github.com/mdjnelson/moodle-mod_customcert/archive/refs/heads/MOODLE_404_STABLE.zip" \
@@ -42,7 +38,6 @@ RUN curl -fL -o /tmp/cc.zip \
     && unzip -q /tmp/cc.zip -d /tmp/cc_out \
     && mv /tmp/cc_out/moodle-mod_customcert-* /var/www/html/mod/customcert \
     && rm -rf /tmp/cc.zip /tmp/cc_out
-
 # auth_userkey (auto-login for the pay-first flow, Moodle 4.5 line)
 RUN curl -fL -o /tmp/uk.zip \
     "https://github.com/catalyst/moodle-auth_userkey/archive/refs/heads/MOODLE_405_STABLE.zip" \
@@ -51,8 +46,8 @@ RUN curl -fL -o /tmp/uk.zip \
     && unzip -q /tmp/uk.zip -d /tmp/uk_out \
     && mv /tmp/uk_out/moodle-auth_userkey-* /var/www/html/auth/userkey \
     && rm -rf /tmp/uk.zip /tmp/uk_out
-
 COPY config.php /var/www/html/config.php.template
+COPY contact-relay.php /var/www/html/contact-relay.php
 RUN chown -R application:application /var/www/html
 RUN mkdir -p /moodledata
 RUN cat > /usr/local/bin/init.sh << 'EOF'
