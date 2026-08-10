@@ -1,35 +1,58 @@
 <?php
 /**
- * Benzaiten LMS — contact form relay (Moodle backend, Resend HTTP API)
+ * Benzaiten LMS — contact form relay (direct authenticated SMTP)
  *
  * IMPORTANT: this file is 100% standalone. It does NOT include Moodle's
  * config.php, does NOT touch the database, and does NOT use any Moodle
- * internals — it's just a plain PHP script that happens to live on the
- * same server/domain (api.benzaitenlms.com) for convenience, reusing the
- * same Resend account Moodle's outgoing mail already uses. There is no
- * path by which this can affect Moodle itself (the earlier outage was
- * caused by editing Moodle's Additional HTML in the database — this
- * script is unrelated to that and carries none of that risk).
+ * internals — it's a plain PHP script that happens to live on the same
+ * server/domain (api.benzaitenlms.com) for convenience.
+ *
+ * WHY DIRECT SMTP INSTEAD OF RESEND: your info@benzaitenlms.com mailbox
+ * is hosted on Bluehost, which rejects unauthenticated mail claiming to
+ * be FROM its own locally-hosted domain (benzaitenlms.com) — a standard
+ * anti-spoofing rule. Routing through Resend (an external relay) hits
+ * that wall no matter which @benzaitenlms.com address is used. Logging
+ * in directly with the mailbox's real password sidesteps it entirely —
+ * Bluehost accepts authenticated senders. No new domain/subdomain/
+ * service is needed.
  *
  * WHERE THIS GOES
- * Add this file to wherever your Dockerfile copies Moodle's PHP source
- * into the image (commonly /var/www/html or similar), so it ends up
- * reachable at:  https://api.benzaitenlms.com/contact-relay.php
+ * Same as before: repo root, next to config.php, so your Dockerfile's
+ * `COPY contact-relay.php /var/www/html/contact-relay.php` line still
+ * works unchanged. It becomes reachable at:
+ *   https://api.benzaitenlms.com/contact-relay.php
+ *
+ * ALSO NEEDED: the PHPMailer library baked into the image — see the
+ * Dockerfile snippet provided alongside this file.
  *
  * ENV VARS TO SET on the "Backend" Railway service (Variables tab):
- *   RESEND_API_KEY   - the SAME key already used as the SMTP password
- *                       in Moodle's Site administration -> Server ->
- *                       Email -> Outgoing mail configuration.
- *   FROM_EMAIL        - e.g. "Benzaiten LMS Contact Form <contact@benzaitenlms.com>"
- *                       (must be on the domain already verified in Resend)
- *   TO_EMAIL           - e.g. info@benzaitenlms.com
- *   ALLOWED_ORIGIN     - e.g. https://benzaitenlms.com
+ *   SMTP_HOST   - mail.benzaitenlms.com (confirmed to resolve to your
+ *                 Bluehost mail server — double-check against cPanel's
+ *                 "Connect Devices" page for info@benzaitenlms.com if
+ *                 this doesn't work)
+ *   SMTP_PORT   - 465 (SSL) — or 587 if cPanel shows that instead
+ *   SMTP_USER   - info@benzaitenlms.com
+ *   SMTP_PASS   - the mailbox's real password
+ *   TO_EMAIL    - info@benzaitenlms.com
+ *   FROM_EMAIL  - info@benzaitenlms.com  (safe now — this is an
+ *                 authenticated login, not an external relay claim)
+ *   ALLOWED_ORIGIN - https://benzaitenlms.com
  */
 
+require '/var/www/html/phpmailer/Exception.php';
+require '/var/www/html/phpmailer/PHPMailer.php';
+require '/var/www/html/phpmailer/SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+
 // ---- config ----
-$RESEND_API_KEY = getenv('RESEND_API_KEY') ?: '';
-$FROM_EMAIL     = getenv('FROM_EMAIL') ?: 'Benzaiten LMS Contact Form <contact@benzaitenlms.com>';
+$SMTP_HOST      = getenv('SMTP_HOST') ?: 'mail.benzaitenlms.com';
+$SMTP_PORT      = (int)(getenv('SMTP_PORT') ?: 465);
+$SMTP_USER      = getenv('SMTP_USER') ?: 'info@benzaitenlms.com';
+$SMTP_PASS      = getenv('SMTP_PASS') ?: '';
 $TO_EMAIL       = getenv('TO_EMAIL') ?: 'info@benzaitenlms.com';
+$FROM_EMAIL     = getenv('FROM_EMAIL') ?: 'info@benzaitenlms.com';
 $ALLOWED_ORIGIN = getenv('ALLOWED_ORIGIN') ?: 'https://benzaitenlms.com';
 
 // ---- CORS (the form is on benzaitenlms.com, this endpoint is on api.benzaitenlms.com) ----
@@ -104,8 +127,8 @@ if (strlen($name) > 200 || strlen($subject) > 200 || strlen($message) > 5000) {
     respond(400, ['ok' => false, 'error' => 'One of the fields is too long.']);
 }
 
-if ($RESEND_API_KEY === '') {
-    error_log('contact-relay: RESEND_API_KEY is not set');
+if ($SMTP_PASS === '') {
+    error_log('contact-relay: SMTP_PASS is not set');
     respond(500, ['ok' => false, 'error' => 'Something went wrong. Please try again or email info@benzaitenlms.com directly.']);
 }
 
@@ -119,32 +142,28 @@ $html = '<h2>New message from benzaitenlms.com contact form</h2>'
       . '<p><strong>Subject:</strong> ' . esc_html($subject) . '</p>'
       . '<p><strong>Message:</strong></p><p>' . nl2br(esc_html($message)) . '</p>';
 
-$payload = json_encode([
-    'from'     => $FROM_EMAIL,
-    'to'       => [$TO_EMAIL],
-    'reply_to' => $email,
-    'subject'  => '[Contact form] ' . $subject,
-    'html'     => $html,
-]);
+try {
+    $mail = new PHPMailer(true);
+    $mail->isSMTP();
+    $mail->Host       = $SMTP_HOST;
+    $mail->SMTPAuth   = true;
+    $mail->Username   = $SMTP_USER;
+    $mail->Password   = $SMTP_PASS;
+    $mail->Port       = $SMTP_PORT;
+    $mail->SMTPSecure = $SMTP_PORT === 587 ? PHPMailer::ENCRYPTION_STARTTLS : PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Timeout    = 15;
 
-$ch = curl_init('https://api.resend.com/emails');
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => $payload,
-    CURLOPT_HTTPHEADER     => [
-        'Authorization: Bearer ' . $RESEND_API_KEY,
-        'Content-Type: application/json',
-    ],
-    CURLOPT_TIMEOUT        => 15,
-]);
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curlErr  = curl_error($ch);
-curl_close($ch);
+    $mail->setFrom($FROM_EMAIL, 'Benzaiten LMS Contact Form');
+    $mail->addAddress($TO_EMAIL);
+    $mail->addReplyTo($email, $name);
+    $mail->Subject = '[Contact form] ' . $subject;
+    $mail->isHTML(true);
+    $mail->Body    = $html;
+    $mail->AltBody = "Name: $name\nEmail: $email\nSubject: $subject\n\n$message";
 
-if ($curlErr || $httpCode < 200 || $httpCode >= 300) {
-    error_log('contact-relay: Resend send failed, http=' . $httpCode . ' curl_err=' . $curlErr . ' body=' . $response);
+    $mail->send();
+} catch (PHPMailerException $e) {
+    error_log('contact-relay: PHPMailer send failed: ' . $e->getMessage());
     respond(502, ['ok' => false, 'error' => 'Could not send your message right now. Please try again shortly.']);
 }
 

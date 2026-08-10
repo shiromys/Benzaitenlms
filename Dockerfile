@@ -46,6 +46,18 @@ RUN curl -fL -o /tmp/uk.zip \
     && unzip -q /tmp/uk.zip -d /tmp/uk_out \
     && mv /tmp/uk_out/moodle-auth_userkey-* /var/www/html/auth/userkey \
     && rm -rf /tmp/uk.zip /tmp/uk_out
+# PHPMailer (direct authenticated SMTP send for the contact form — no external relay/domain needed)
+RUN curl -fL -o /tmp/phpmailer.zip \
+    "https://github.com/PHPMailer/PHPMailer/archive/refs/tags/v7.1.1.zip" \
+    && unzip -tq /tmp/phpmailer.zip \
+    && unzip -q /tmp/phpmailer.zip -d /tmp/phpmailer_out \
+    && mkdir -p /var/www/html/phpmailer \
+    && cp /tmp/phpmailer_out/PHPMailer-*/src/Exception.php \
+          /tmp/phpmailer_out/PHPMailer-*/src/PHPMailer.php \
+          /tmp/phpmailer_out/PHPMailer-*/src/SMTP.php \
+          /var/www/html/phpmailer/ \
+    && rm -rf /tmp/phpmailer.zip /tmp/phpmailer_out
+
 COPY config.php /var/www/html/config.php.template
 COPY contact-relay.php /var/www/html/contact-relay.php
 RUN chown -R application:application /var/www/html
