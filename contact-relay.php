@@ -34,8 +34,11 @@
  *   SMTP_USER   - info@benzaitenlms.com
  *   SMTP_PASS   - the mailbox's real password
  *   TO_EMAIL    - info@benzaitenlms.com
- *   FROM_EMAIL  - info@benzaitenlms.com  (safe now — this is an
- *                 authenticated login, not an external relay claim)
+ *   FROM_EMAIL  - noreply@benzaitenlms.com  — deliberately NOT the same
+ *                 as TO_EMAIL/SMTP_USER: identical From/To is a classic
+ *                 spam-heuristic trigger and is the likely reason earlier
+ *                 test sends vanished silently after Exim accepted them.
+ *                 Any address on your own domain works once authenticated.
  *   ALLOWED_ORIGIN - https://benzaitenlms.com
  */
 
@@ -52,7 +55,7 @@ $SMTP_PORT      = (int)(getenv('SMTP_PORT') ?: 465);
 $SMTP_USER      = getenv('SMTP_USER') ?: 'info@benzaitenlms.com';
 $SMTP_PASS      = getenv('SMTP_PASS') ?: '';
 $TO_EMAIL       = getenv('TO_EMAIL') ?: 'info@benzaitenlms.com';
-$FROM_EMAIL     = getenv('FROM_EMAIL') ?: 'info@benzaitenlms.com';
+$FROM_EMAIL     = getenv('FROM_EMAIL') ?: 'noreply@benzaitenlms.com';
 $ALLOWED_ORIGIN = getenv('ALLOWED_ORIGIN') ?: 'https://benzaitenlms.com';
 
 // ---- CORS (the form is on benzaitenlms.com, this endpoint is on api.benzaitenlms.com) ----
