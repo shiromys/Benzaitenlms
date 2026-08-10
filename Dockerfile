@@ -60,6 +60,7 @@ RUN curl -fL -o /tmp/phpmailer.zip \
 
 COPY config.php /var/www/html/config.php.template
 COPY contact-relay.php /var/www/html/contact-relay.php
+COPY smtp-diag.php /var/www/html/smtp-diag.php
 RUN chown -R application:application /var/www/html
 RUN mkdir -p /moodledata
 RUN cat > /usr/local/bin/init.sh << 'EOF'
