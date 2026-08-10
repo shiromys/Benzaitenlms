@@ -348,6 +348,199 @@ body .elementor-menu-toggle {padding: 0}
 		
 			</div>
 
+<!-- ================================================================= -->
+<!--  Benzaiten LMS — Contact form section                             -->
+<!--  Posts (as JSON) to contact-relay.php, already deployed on the    -->
+<!--  Moodle "Backend" Railway service at api.benzaitenlms.com.        -->
+<!--  Self-contained (own <style>/<script>) — sets its own max-width   -->
+<!--  and centering, so it doesn't need to borrow the page's Elementor -->
+<!--  container classes.                                               -->
+<!-- ================================================================= -->
+
+<section class="bz-contact-section" aria-labelledby="bz-contact-heading">
+  <div class="bz-contact-wrap">
+
+    <div class="bz-contact-info">
+      <span class="bz-contact-eyebrow">GET IN TOUCH</span>
+      <h2 id="bz-contact-heading">Send us a message</h2>
+      <p class="bz-contact-sub">Have a question about a course, your enrolment, or anything else? Fill out the form and our team will get back to you.</p>
+
+      <div class="bz-contact-detail">
+        <span class="bz-contact-detail-label">Email</span>
+        <a href="mailto:info@benzaitenlms.com">info@benzaitenlms.com</a>
+      </div>
+      <div class="bz-contact-detail">
+        <span class="bz-contact-detail-label">Response time</span>
+        <span>We typically respond within 1–2 business days.</span>
+      </div>
+    </div>
+
+    <form class="bz-contact-form" id="bz-contact-form">
+      <!-- Honeypot spam trap — keep this field, it's hidden from real visitors -->
+      <input type="text" name="_gotcha" class="bz-hp" tabindex="-1" autocomplete="off">
+
+      <div class="bz-form-row">
+        <label for="bz-name">Full Name <span class="bz-req">*</span></label>
+        <input type="text" id="bz-name" name="name" required autocomplete="name">
+      </div>
+
+      <div class="bz-form-row">
+        <label for="bz-email">Email Address <span class="bz-req">*</span></label>
+        <input type="email" id="bz-email" name="email" required autocomplete="email">
+      </div>
+
+      <div class="bz-form-row">
+        <label for="bz-subject">Subject <span class="bz-req">*</span></label>
+        <select id="bz-subject" name="subject" required>
+          <option value="" disabled selected>Select a topic</option>
+          <option value="Course access or enrollment issues">Course access or enrollment issues</option>
+          <option value="Payment or billing questions">Payment or billing questions</option>
+          <option value="Technical problems with modules or quize">Technical problems with modules or quize</option>
+          <option value="Account login or password resets">Account login or password resets</option>
+          <option value="Certification downloads">Certification downloads</option>
+          <option value="General feedback or suggestions">General feedback or suggestions</option>
+        </select>
+      </div>
+
+      <div class="bz-form-row">
+        <label for="bz-message">Message <span class="bz-req">*</span></label>
+        <textarea id="bz-message" name="message" rows="5" required></textarea>
+      </div>
+
+      <button type="submit" class="bz-submit-btn">
+        <span class="bz-submit-text">Send Message</span>
+      </button>
+
+      <p class="bz-form-status" id="bz-form-status" role="status" aria-live="polite"></p>
+    </form>
+
+  </div>
+</section>
+
+<style>
+  .bz-contact-section{
+    padding:70px 20px;background:var(--e-global-color-f335474,#F2F2F2);
+  }
+  .bz-contact-wrap{
+    max-width:1100px;margin:0 auto;display:grid;grid-template-columns:0.85fr 1.15fr;gap:60px;align-items:start;
+  }
+  @media (max-width:900px){ .bz-contact-wrap{grid-template-columns:1fr;gap:36px;} }
+
+  .bz-contact-eyebrow{
+    display:inline-block;font-family:"Montserrat",sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;
+    color:var(--e-global-color-secondary,#E40045);margin-bottom:10px;
+  }
+  .bz-contact-section h2{
+    font-family:"Montserrat",sans-serif;font-weight:700;font-size:34px;line-height:1.2;
+    color:var(--e-global-color-primary,#520D4D);margin:0 0 14px;
+  }
+  .bz-contact-sub{
+    font-family:"Montserrat",sans-serif;font-size:16px;line-height:1.6;color:var(--e-global-color-text,#181818);
+    margin:0 0 30px;max-width:420px;
+  }
+  .bz-contact-detail{ margin-bottom:18px;font-family:"Montserrat",sans-serif; }
+  .bz-contact-detail-label{
+    display:block;font-weight:700;font-size:13px;letter-spacing:.5px;color:var(--e-global-color-primary,#520D4D);
+    margin-bottom:3px;
+  }
+  .bz-contact-detail a,.bz-contact-detail span{ font-size:15px;color:var(--e-global-color-text,#181818); }
+  .bz-contact-detail a{ text-decoration:none; }
+  .bz-contact-detail a:hover{ text-decoration:underline; }
+
+  .bz-contact-form{
+    background:#fff;border-radius:16px;padding:36px;box-shadow:0 10px 40px rgba(82,13,77,0.08);
+  }
+  .bz-form-row{ margin-bottom:20px; display:flex; flex-direction:column; }
+  .bz-form-row label{
+    font-family:"Montserrat",sans-serif;font-weight:600;font-size:14px;color:var(--e-global-color-text,#181818);
+    margin-bottom:7px;
+  }
+  .bz-req{ color:var(--e-global-color-secondary,#E40045); }
+  .bz-form-row input[type="text"],
+  .bz-form-row input[type="email"],
+  .bz-form-row select,
+  .bz-form-row textarea{
+    font-family:"Montserrat",sans-serif;font-size:15px;color:var(--e-global-color-text,#181818);
+    border:1.5px solid #DDDDDD;border-radius:10px;padding:12px 14px;background:#fff;width:100%;box-sizing:border-box;
+    transition:border-color .15s;
+  }
+  .bz-form-row textarea{ resize:vertical; min-height:110px; }
+  .bz-form-row input:focus,
+  .bz-form-row select:focus,
+  .bz-form-row textarea:focus{
+    outline:none;border-color:var(--e-global-color-primary,#520D4D);
+  }
+  .bz-hp{ position:absolute !important; left:-9999px !important; width:1px;height:1px;opacity:0; }
+
+  .bz-submit-btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--e-global-color-primary,#520D4D);color:#fff;border:none;cursor:pointer;
+    font-family:"Montserrat",sans-serif;font-weight:600;font-size:15px;
+    padding:14px 34px;border-radius:64px;transition:background .15s;width:100%;
+  }
+  .bz-submit-btn:hover{ background:var(--e-global-color-accent,#2F2483); }
+  .bz-submit-btn:disabled{ opacity:.6;cursor:not-allowed; }
+  @media (min-width:520px){ .bz-submit-btn{ width:auto; } }
+
+  .bz-form-status{
+    font-family:"Montserrat",sans-serif;font-size:14px;margin:14px 0 0;min-height:20px;
+  }
+  .bz-form-status.bz-ok{ color:#1a7f37; }
+  .bz-form-status.bz-err{ color:var(--e-global-color-secondary,#E40045); }
+</style>
+
+<script>
+(function () {
+  var CONTACT_API_URL = 'https://api.benzaitenlms.com/contact-relay.php';
+
+  var form = document.getElementById('bz-contact-form');
+  if (!form) return;
+  var status = document.getElementById('bz-form-status');
+  var btn = form.querySelector('.bz-submit-btn');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    status.textContent = '';
+    status.className = 'bz-form-status';
+    btn.disabled = true;
+    var prevText = btn.querySelector('.bz-submit-text').textContent;
+    btn.querySelector('.bz-submit-text').textContent = 'Sending…';
+
+    var payload = {
+      name: form.querySelector('#bz-name').value,
+      email: form.querySelector('#bz-email').value,
+      subject: form.querySelector('#bz-subject').value,
+      message: form.querySelector('#bz-message').value,
+      _gotcha: form.querySelector('[name="_gotcha"]').value
+    };
+
+    fetch(CONTACT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        if (res.ok && data.ok) {
+          status.textContent = "Thanks! Your message has been sent — we'll get back to you soon.";
+          status.className = 'bz-form-status bz-ok';
+          form.reset();
+        } else {
+          status.textContent = (data && data.error) || 'Something went wrong. Please try again or email info@benzaitenlms.com directly.';
+          status.className = 'bz-form-status bz-err';
+        }
+      });
+    }).catch(function () {
+      status.textContent = 'Something went wrong. Please try again or email info@benzaitenlms.com directly.';
+      status.className = 'bz-form-status bz-err';
+    }).finally(function () {
+      btn.disabled = false;
+      btn.querySelector('.bz-submit-text').textContent = prevText;
+    });
+  });
+})();
+</script>
+<!-- ===================== END contact form section ===================== -->
+
 	
 </main>
 
