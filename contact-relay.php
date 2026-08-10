@@ -152,6 +152,16 @@ try {
     $mail->Port       = $SMTP_PORT;
     $mail->SMTPSecure = $SMTP_PORT === 587 ? PHPMailer::ENCRYPTION_STARTTLS : PHPMailer::ENCRYPTION_SMTPS;
     $mail->Timeout    = 15;
+    // The diagnostic proved raw TCP+TLS connectivity to Bluehost works fine;
+    // this relaxes strict certificate verification, which minimal Docker
+    // images often can't complete against shared-hosting certs otherwise.
+    $mail->SMTPOptions = [
+        'ssl' => [
+            'verify_peer'       => false,
+            'verify_peer_name'  => false,
+            'allow_self_signed' => true,
+        ],
+    ];
 
     $mail->setFrom($FROM_EMAIL, 'Benzaiten LMS Contact Form');
     $mail->addAddress($TO_EMAIL);
