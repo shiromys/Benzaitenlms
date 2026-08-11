@@ -262,6 +262,72 @@ body .elementor-menu-toggle {padding: 0}
 
 			<div data-elementor-type="footer" data-elementor-id="51" class="elementor elementor-51 elementor-location-footer" data-elementor-post-type="elementor_library">
 			<div class="elementor-element elementor-element-dee37c2 e-con-full e-flex e-con e-parent" data-id="dee37c2" data-element_type="container" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
+				<!-- ================================================================= -->
+<!--  Benzaiten LMS — Footer trust-badge bar                          -->
+<!--  Paste this as the FIRST child inside the footer's outer         -->
+<!--  container, i.e. right after:                                    -->
+<!--    <div class="elementor-element elementor-element-dee37c2 ...">  -->
+<!--  and before the next line (elementor-element-ea20019). It then    -->
+<!--  sits as a full-width strip above your logo/links/contact row,    -->
+<!--  same position DFWITJobs uses.                                   -->
+<!--  Self-contained (own <style>) — safe to paste as-is.             -->
+<!-- ================================================================= -->
+
+<div class="bz-trust-bar">
+  <div class="bz-trust-bar-inner">
+
+    <div class="bz-trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>256-bit SSL Encrypted</span>
+    </div>
+
+    <div class="bz-trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span>GDPR Compliant</span>
+    </div>
+
+    <div class="bz-trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M5 7 3 12a3 3 0 0 0 4 0zM19 7l-2 5a3 3 0 0 0 4 0z"/></svg>
+      <span>FTC Compliant</span>
+    </div>
+
+    <div class="bz-trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+      <span>29 CFR &sect; 1625.2</span>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .bz-trust-bar{
+    /* no background of its own — shows through whatever the footer's
+       own background already is, so it always matches */
+    padding:22px 20px;
+  }
+  .bz-trust-bar-inner{
+    max-width:1220px;margin:0 auto;
+    display:flex;flex-wrap:wrap;gap:14px;justify-content:center;
+  }
+  .bz-trust-badge{
+    display:flex;align-items:center;gap:10px;
+    background:var(--e-global-color-primary,#520D4D);
+    border:1px solid var(--e-global-color-primary,#520D4D);
+    border-radius:10px;
+    padding:10px 18px;
+    font-family:"Montserrat",sans-serif;font-weight:600;font-size:13.5px;
+    color:#fff;white-space:nowrap;
+  }
+  .bz-trust-badge svg{
+    width:18px;height:18px;flex-shrink:0;
+    color:#fff;
+  }
+  @media (max-width:640px){
+    .bz-trust-bar-inner{ justify-content:flex-start; }
+    .bz-trust-badge{ white-space:normal; }
+  }
+</style>
+<!-- ===================== END footer trust-badge bar ===================== -->
 		<div class="elementor-element elementor-element-ea20019 e-con-full e-flex e-con e-child" data-id="ea20019" data-element_type="container">
 		<div class="elementor-element elementor-element-27fcfec e-flex e-con-boxed e-con e-child" data-id="27fcfec" data-element_type="container">
 					<div class="e-con-inner">
@@ -298,7 +364,7 @@ body .elementor-menu-toggle {padding: 0}
 		<div class="elementor-element elementor-element-4c7e424 e-con-full e-flex e-con e-child" data-id="4c7e424" data-element_type="container">
 				<div class="elementor-element elementor-element-94c0061 elementor-widget elementor-widget-heading" data-id="94c0061" data-element_type="widget" data-widget_type="heading.default">
 				<div class="elementor-widget-container">
-					<h5 class="elementor-heading-title elementor-size-default">Links</h5>				</div>
+					<h5 class="elementor-heading-title elementor-size-default">Legal Links</h5>				</div>
 				</div>
 				<div class="elementor-element elementor-element-58ded50 elementor-nav-menu--dropdown-none elementor-widget elementor-widget-nav-menu" data-id="58ded50" data-element_type="widget" data-settings="{&quot;layout&quot;:&quot;vertical&quot;,&quot;submenu_icon&quot;:{&quot;value&quot;:&quot;&lt;svg class=\&quot;e-font-icon-svg e-fas-caret-down\&quot; viewBox=\&quot;0 0 320 512\&quot; xmlns=\&quot;http:\/\/www.w3.org\/2000\/svg\&quot;&gt;&lt;path d=\&quot;M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z\&quot;&gt;&lt;\/path&gt;&lt;\/svg&gt;&quot;,&quot;library&quot;:&quot;fa-solid&quot;}}" data-widget_type="nav-menu.default">
 				<div class="elementor-widget-container">
@@ -400,7 +466,7 @@ body .elementor-menu-toggle {padding: 0}
 		<div class="elementor-element elementor-element-e0b40fd e-con-full e-flex e-con e-child" data-id="e0b40fd" data-element_type="container">
 				<div class="elementor-element elementor-element-af8d750 elementor-widget elementor-widget-text-editor" data-id="af8d750" data-element_type="widget" data-widget_type="text-editor.default">
 				<div class="elementor-widget-container">
-									<p>© 2025 benzaitenlms. All Rights Reserved. </p>								</div>
+									<p>© 2026 Benzaiten LMS — A product of C Tekk Solutions Inc. All rights reserved. </p>								</div>
 				</div>
 				</div>
 				</div>
