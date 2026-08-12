@@ -36,13 +36,6 @@ if (!is_array($data)) {
     exit;
 }
 
-// ---- Honeypot spam trap (hidden field, real visitors leave it blank) --
-if (!empty($data['_gotcha'])) {
-    // Silently pretend success so bots don't learn anything.
-    echo json_encode(['ok' => true]);
-    exit;
-}
-
 // ---- Basic field validation --------------------------------------------
 $name    = trim($data['name']    ?? '');
 $email   = trim($data['email']   ?? '');

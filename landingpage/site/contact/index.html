@@ -24,8 +24,6 @@
         <h2 id="bz-contact-heading">Send us a message</h2>
         <p class="bz-contact-sub">Have a question about a course, your enrolment, or anything else? Fill out the form and we'll get back to you within 1–2 business days — or email us directly at <a href="mailto:info@benzaitenlms.com">info@benzaitenlms.com</a>.</p>
         <form id="bz-contact-form">
-          <!-- Honeypot spam trap — keep this field, it's hidden from real visitors -->
-          <input type="text" name="_gotcha" class="bz-hp" tabindex="-1" autocomplete="off">
           <div class="bz-form-grid-2">
             <div class="bz-form-row">
               <label for="bz-name">Full Name <span class="bz-req">*</span></label>
@@ -151,7 +149,6 @@
   .bz-form-row textarea:focus{
     outline:none;border-color:var(--e-global-color-primary,#520D4D);
   }
-  .bz-hp{ position:absolute !important; left:-9999px !important; width:1px;height:1px;opacity:0; }
   .bz-submit-btn{
     display:flex;align-items:center;justify-content:center;gap:8px;
     background:var(--e-global-color-primary,#520D4D);color:#fff;border:none;cursor:pointer;
@@ -193,7 +190,6 @@
       email: form.querySelector('#bz-email').value,
       subject: form.querySelector('#bz-subject').value,
       message: form.querySelector('#bz-message').value,
-      _gotcha: form.querySelector('[name="_gotcha"]').value,
       recaptcha: recaptchaToken
     };
     fetch(CONTACT_API_URL, {
