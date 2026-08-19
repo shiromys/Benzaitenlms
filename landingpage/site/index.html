@@ -965,5 +965,38 @@ const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(
 </script>
 <script src="/cookie-consent.js" defer></script>
 
+<!-- ================================================================= -->
+<!--  Benzaiten LMS — Smol Launch verification badge (floating,        -->
+<!--  bottom-right, site footer). Self-contained (own <style>).        -->
+<!-- ================================================================= -->
+<div class="bz-smollaunch-badge">
+  <a href="https://smollaunch.com" target="_blank" rel="noopener">
+    <img src="https://smollaunch.com/badges/featured.svg" alt="BenzaitenLMS — Featured on Smol Launch" loading="lazy" width="250" height="60" />
+  </a>
+</div>
+<style>
+  .bz-smollaunch-badge{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:9999;
+    background:#fff;
+    border-radius:12px;
+    padding:8px 10px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.18);
+    line-height:0;
+  }
+  .bz-smollaunch-badge img{
+    display:block;
+    width:160px;
+    height:auto;
+  }
+  @media (max-width:600px){
+    .bz-smollaunch-badge{ right:12px; bottom:12px; padding:6px 8px; }
+    .bz-smollaunch-badge img{ width:120px; }
+  }
+</style>
+<!-- ===================== END Smol Launch badge ===================== -->
+
 </body>
 </html>
