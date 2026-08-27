@@ -265,8 +265,18 @@ body .elementor-menu-toggle {padding: 0}
 	<div class="page-content">
 		<!-- ================= BENZAITEN LMS BLOG (custom) ================= -->
 		<style>
+			/* Fixes horizontal scrollbar on this page. Root cause: .bz-blog-hero
+			   had width:100vw plus 20px left/right padding with the default
+			   box-sizing:content-box, so the padding added 40px on top of
+			   100vw, making the box wider than the viewport. box-sizing:border-box
+			   below makes width:100vw include the padding instead of adding to
+			   it. The extra html{overflow-x:hidden} covers the separate, much
+			   smaller residual case where 100vw itself is measured wider than
+			   the visible page by the width of the browser's own scrollbar —
+			   it clips only that invisible sliver, no visible content is cut. */
+			html{overflow-x:hidden;}
 			.bz-blog-hero{background:#2b0e28;color:#fff;text-align:center;padding:72px 20px 82px;
-				width:100vw;margin-left:calc(50% - 50vw);font-family:'Poppins',sans-serif;}
+				width:100vw;box-sizing:border-box;margin-left:calc(50% - 50vw);font-family:'Poppins',sans-serif;}
 			.bz-blog-hero .bz-eyebrow{color:#c98bc4;font-weight:600;letter-spacing:.14em;
 				text-transform:uppercase;font-size:14px;margin-bottom:14px;}
 			.bz-blog-hero h1{font-weight:700;font-size:clamp(2rem,5vw,3.2rem);margin:0 0 16px;color:#fff;}
@@ -306,11 +316,47 @@ body .elementor-menu-toggle {padding: 0}
 			  <article class="bz-post-card">
 			    <div class="bz-post-body">
 			      <span class="bz-post-tag">Announcement</span>
-			      <h3>We're live on Smol Launch! 🚀</h3>
-			      <div class="bz-post-meta">August 18, 2026</div>
-			      <p>Benzaiten LMS has officially launched on Smol Launch — click below to check it out and show your support.</p>
+			      <h3>Coming soon to Smol Launch 🚀</h3>
+			      <div class="bz-post-meta">Launching August 31, 2026</div>
+			      <p>Benzaiten LMS is launching on Smol Launch soon — click below to check out our upcoming listing and show your support.</p>
 			      <a href="https://smollaunch.com" target="_blank" rel="noopener" class="bz-launch-badge">
 			        <img src="https://smollaunch.com/badges/featured.svg" alt="BenzaitenLMS — Featured on Smol Launch" loading="lazy" width="250" height="60">
+			      </a>
+			    </div>
+			  </article>
+
+			  <article class="bz-post-card">
+			    <div class="bz-post-body">
+			      <span class="bz-post-tag">Announcement</span>
+			      <h3>We're live on Findly.tools! 🚀</h3>
+			      <div class="bz-post-meta">Now Live</div>
+			      <p>Benzaiten LMS is now featured on Findly.tools — click below to check it out and show your support.</p>
+			      <a href="https://findly.tools/benzaiten-lms?utm_source=benzaiten-lms" target="_blank" rel="noopener noreferrer" class="bz-launch-badge">
+			        <img src="https://findly.tools/badges/findly-tools-badge-light.svg" alt="Featured on Findly.tools" loading="lazy" width="175" height="55">
+			      </a>
+			    </div>
+			  </article>
+
+			  <article class="bz-post-card">
+			    <div class="bz-post-body">
+			      <span class="bz-post-tag">Announcement</span>
+			      <h3>Coming soon to SitePatent 🚀</h3>
+			      <div class="bz-post-meta">Launching September 1, 2026</div>
+			      <p>Benzaiten LMS is launching on SitePatent soon — click below to check out our upcoming listing and show your support.</p>
+			      <a href="https://sitepatent.com/?utm_source=benzaitenlms.com&utm_medium=badge" target="_blank" rel="nofollow noopener noreferrer" class="bz-launch-badge">
+			        <img src="https://sitepatent.com/api/badge?style=classic" alt="In the SitePatent collection" loading="lazy" height="54">
+			      </a>
+			    </div>
+			  </article>
+
+			  <article class="bz-post-card">
+			    <div class="bz-post-body">
+			      <span class="bz-post-tag">Announcement</span>
+			      <h3>Coming soon to Product Hunt — live tomorrow! 🚀</h3>
+			      <div class="bz-post-meta">Launching August 28, 2026</div>
+			      <p>Benzaiten LMS launches on Product Hunt tomorrow — check out our Coming Soon page now and come back at launch to show your support.</p>
+			      <a href="https://www.producthunt.com/products/benzaitenlms/reviews/new?utm_source=badge-product_review&utm_medium=badge&utm_source=badge-benzaitenlms" target="_blank" class="bz-launch-badge">
+			        <img src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=1296591&theme=light" alt="BenzaitenLMS - Self&#0045;paced&#0044;&#0032;AI&#0045;powered&#0032;LMS&#0032;for&#0032;IT&#0032;upskilling | Product Hunt" width="250" height="54">
 			      </a>
 			    </div>
 			  </article>
