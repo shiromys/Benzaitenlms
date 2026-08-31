@@ -7,8 +7,8 @@ server {
     gzip on;
     gzip_types text/css application/javascript image/svg+xml;
 
-    # Clean URLs: /pricing -> /pricing/index.html, custom 404 page.
+    # Clean URLs: /pricing -> /pricing/index.html, real 404 status on anything missing.
     location / {
-        try_files $uri $uri/ $uri.html /404.html;
+        try_files $uri $uri/ $uri.html =404;
     }
 }
