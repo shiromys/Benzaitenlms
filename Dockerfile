@@ -61,6 +61,11 @@ RUN curl -fL -o /tmp/phpmailer.zip \
 COPY config.php /var/www/html/config.php.template
 COPY contact-relay.php /var/www/html/contact-relay.php
 COPY smtp-diag.php /var/www/html/smtp-diag.php
+# Fix for slash-argument PHP URLs (e.g. /pluginfile.php/375/mod_scorm/content/...)
+# being misrouted to /my/ instead of reaching PHP-FPM with PATH_INFO set —
+# see 05-pathinfo.conf for the full explanation. Loaded before the base
+# image's own 10-php.conf so plain *.php requests are unaffected.
+COPY 05-pathinfo.conf /opt/docker/etc/nginx/vhost.common.d/05-pathinfo.conf
 RUN chown -R application:application /var/www/html
 RUN mkdir -p /moodledata
 RUN cat > /usr/local/bin/init.sh << 'EOF'
