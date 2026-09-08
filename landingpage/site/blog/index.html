@@ -255,130 +255,128 @@ body .elementor-menu-toggle {padding: 0}
 <main id="content" class="site-main post-358 page type-page status-publish hentry">
 
 	<div class="page-content">
-		<!-- ================= BENZAITEN LMS BLOG (custom) ================= -->
-		<style>
-			/* Fixes horizontal scrollbar on this page. Root cause: .bz-blog-hero
-			   had width:100vw plus 20px left/right padding with the default
-			   box-sizing:content-box, so the padding added 40px on top of
-			   100vw, making the box wider than the viewport. box-sizing:border-box
-			   below makes width:100vw include the padding instead of adding to
-			   it. The extra html{overflow-x:hidden} covers the separate, much
-			   smaller residual case where 100vw itself is measured wider than
-			   the visible page by the width of the browser's own scrollbar —
-			   it clips only that invisible sliver, no visible content is cut. */
-			html{overflow-x:hidden;}
-			.bz-blog-hero{background:#2b0e28;color:#fff;text-align:center;padding:72px 20px 82px;
-				width:100vw;box-sizing:border-box;margin-left:calc(50% - 50vw);font-family:'Poppins',sans-serif;}
-			.bz-blog-hero .bz-eyebrow{color:#c98bc4;font-weight:600;letter-spacing:.14em;
-				text-transform:uppercase;font-size:14px;margin-bottom:14px;}
-			.bz-blog-hero h1{font-weight:700;font-size:clamp(2rem,5vw,3.2rem);margin:0 0 16px;color:#fff;}
-			.bz-blog-hero p{font-size:1.12rem;max-width:680px;margin:0 auto;color:#e7d9e5;line-height:1.6;}
-			.bz-blog-wrap{max-width:1120px;margin:0 auto;padding:60px 20px 90px;font-family:'Poppins',sans-serif;}
-			.bz-blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:28px;}
-			.bz-post-card{background:#fff;border:1px solid #eee;border-radius:14px;overflow:hidden;
-				box-shadow:0 4px 18px rgba(0,0,0,.06);transition:transform .18s,box-shadow .18s;
-				display:flex;flex-direction:column;}
-			.bz-post-card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(74,25,66,.16);}
-			.bz-post-card img{width:100%;height:190px;object-fit:cover;display:block;}
-			.bz-post-body{padding:22px 22px 26px;display:flex;flex-direction:column;flex:1;}
-			.bz-post-tag{color:#520d4d;font-weight:600;font-size:.8rem;text-transform:uppercase;
-				letter-spacing:.06em;margin-bottom:10px;}
-			.bz-post-card h3{font-size:1.15rem;font-weight:700;color:#231a21;margin:0 0 8px;line-height:1.35;}
-			.bz-post-meta{color:#999;font-size:.8rem;margin-bottom:12px;}
-			.bz-post-card p{color:#555;font-size:.95rem;line-height:1.6;margin:0 0 18px;flex:1;}
-			.bz-read-more{color:#4A1942;font-weight:600;text-decoration:none;font-size:.95rem;}
-			.bz-read-more:hover{text-decoration:underline;}
-			.bz-blog-empty{text-align:center;padding:70px 20px;color:#7a7a7a;font-family:'Poppins',sans-serif;}
-			.bz-blog-empty .bz-emoji{font-size:2.6rem;display:block;margin-bottom:14px;}
-			.bz-blog-empty p{font-size:1.05rem;margin:0;}
-			.bz-launch-badge{display:inline-block;margin-top:auto;}
-			.bz-launch-badge img{display:block;max-width:100%;height:auto;}
-		</style>
+			<!-- ================= BENZAITEN LMS BLOG (custom) ================= -->
+			<style>
+				/* Fixes horizontal scrollbar on this page. Root cause: .bz-blog-hero
+				   had width:100vw plus 20px left/right padding with the default
+				   box-sizing:content-box, so the padding added 40px on top of
+				   100vw, making the box wider than the viewport. box-sizing:border-box
+				   below makes width:100vw include the padding instead of adding to
+				   it. The extra html{overflow-x:hidden} covers the separate, much
+				   smaller residual case where 100vw itself is measured wider than
+				   the visible page by the width of the browser's own scrollbar —
+				   it clips only that invisible sliver, no visible content is cut. */
+				html{overflow-x:hidden;}
+				.bz-blog-hero{background:#2b0e28;color:#fff;text-align:center;padding:72px 20px 82px;
+					width:100vw;box-sizing:border-box;margin-left:calc(50% - 50vw);font-family:'Poppins',sans-serif;}
+				.bz-blog-hero .bz-eyebrow{color:#c98bc4;font-weight:600;letter-spacing:.14em;
+					text-transform:uppercase;font-size:14px;margin-bottom:14px;}
+				.bz-blog-hero h1{font-weight:700;font-size:clamp(2rem,5vw,3.2rem);margin:0 0 16px;color:#fff;}
+				.bz-blog-hero p{font-size:1.12rem;max-width:680px;margin:0 auto;color:#e7d9e5;line-height:1.6;}
+				.bz-blog-wrap{max-width:1120px;margin:0 auto;padding:60px 20px 90px;font-family:'Poppins',sans-serif;}
+				.bz-blog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:28px;max-width:920px;margin:0 auto;}
 
-		<section class="bz-blog-hero">
-			<div class="bz-eyebrow">Benzaiten LMS Blog</div>
-			<h1>Tips, Tutorials &amp; Tech Insights</h1>
-			<p>Stay ahead with practical guides on cloud, DevOps, programming, and career growth.</p>
-		</section>
+				/* ---- Backlink post cards (link out to the Blogger posts) ---- */
+				.bz-post-card{background:#fff;border:1px solid #eee;border-radius:14px;overflow:hidden;
+					box-shadow:0 4px 18px rgba(0,0,0,.06);transition:transform .18s,box-shadow .18s;
+					display:flex;flex-direction:column;position:relative;}
+				.bz-post-card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(74,25,66,.16);}
+				.bz-post-card img{width:100%;height:190px;object-fit:cover;display:block;}
+				.bz-post-card-link,
+				.bz-post-card-link:link,
+				.bz-post-card-link:visited,
+				.bz-post-card-link:hover,
+				.bz-post-card-link:focus,
+				.bz-post-card-link *{text-decoration:none !important;}
+				.bz-post-card-link{display:flex;flex-direction:column;flex:1;color:inherit;}
+				.bz-post-body{padding:24px 24px 22px;display:flex;flex-direction:column;flex:1;}
+				.bz-post-tag-pill{display:inline-flex;align-items:center;align-self:flex-start;
+					padding:5px 13px;border-radius:999px;font-weight:700;font-size:.72rem;
+					text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;}
+				.bz-tag-purple{background:#f1e2ef;color:#520d4d;}
+				.bz-tag-pink{background:#fde3ea;color:#e40045;}
+				.bz-post-external{position:absolute;top:20px;right:20px;width:32px;height:32px;
+					border-radius:50%;background:#f5f2f5;display:flex;align-items:center;justify-content:center;
+					color:#520d4d;flex-shrink:0;transition:background .18s,color .18s;}
+				.bz-post-external svg{width:15px;height:15px;}
+				.bz-post-card:hover .bz-post-external{background:#520d4d;color:#fff;}
+				.bz-post-card h3{font-size:1.18rem;font-weight:700;color:#231a21;margin:0 0 10px;
+					line-height:1.35;padding-right:34px;}
+				.bz-post-card p{color:#5a5a5a;font-size:.95rem;line-height:1.65;margin:0 0 20px;flex:1;}
+				.bz-post-divider{border:none;border-top:1px solid #eee;margin:0 0 16px;}
+				.bz-post-footer{display:flex;align-items:center;gap:7px;color:#999;font-size:.82rem;}
+				.bz-post-footer svg{width:14px;height:14px;flex-shrink:0;}
+				.bz-post-footer .bz-dot{opacity:.55;}
+				.bz-post-footer .bz-source{margin-left:auto;font-weight:600;color:#520d4d;}
 
-		<div class="bz-blog-wrap">
+				.bz-blog-empty{text-align:center;padding:70px 20px;color:#7a7a7a;font-family:'Poppins',sans-serif;}
+				.bz-blog-empty .bz-emoji{font-size:2.6rem;display:block;margin-bottom:14px;}
+				.bz-blog-empty p{font-size:1.05rem;margin:0;}
+			</style>
 
-			<div class="bz-blog-grid">
+			<section class="bz-blog-hero">
+				<div class="bz-eyebrow">Benzaiten LMS Blog</div>
+				<h1>Tips, Tutorials &amp; Tech Insights</h1>
+				<p>Stay ahead with practical guides on cloud, DevOps, programming, and career growth.</p>
+			</section>
 
-			  <article class="bz-post-card">
-			    <div class="bz-post-body">
-			      <span class="bz-post-tag">Announcement</span>
-			      <h3>We're live on Smol Launch 🚀</h3>
-			      <div class="bz-post-meta">Now Live</div>
-			      <p>Benzaiten LMS is live on Smol Launch now — check out our listing and show your support.</p>
-			      <a href="https://smollaunch.com/products/benzaitenlms" target="_blank" rel="noopener" class="bz-launch-badge">
-			        <img src="https://smollaunch.com/badges/featured.svg" alt="BenzaitenLMS — Featured on Smol Launch" loading="lazy" width="250" height="60">
-			      </a>
-			    </div>
-			  </article>
+			<div class="bz-blog-wrap">
 
-			  <article class="bz-post-card">
-			    <div class="bz-post-body">
-			      <span class="bz-post-tag">Announcement</span>
-			      <h3>We're live on Findly.tools! 🚀</h3>
-			      <div class="bz-post-meta">Now Live</div>
-			      <p>Benzaiten LMS is now featured on Findly.tools — click below to check it out and show your support.</p>
-			      <a href="https://findly.tools/benzaiten-lms?utm_source=benzaiten-lms" target="_blank" rel="noopener noreferrer" class="bz-launch-badge">
-			        <img src="https://findly.tools/badges/findly-tools-badge-light.svg" alt="Featured on Findly.tools" loading="lazy" width="175" height="55">
-			      </a>
-			    </div>
-			  </article>
+				<div class="bz-blog-grid">
 
-			  <article class="bz-post-card">
-			    <div class="bz-post-body">
-			      <span class="bz-post-tag">Announcement</span>
-			      <h3>Coming soon to SitePatent 🚀</h3>
-			      <div class="bz-post-meta">Launching September 15, 2026</div>
-			      <p>Benzaiten LMS is launching on SitePatent soon — click below to check out our upcoming listing and show your support.</p>
-			      <a href="https://sitepatent.com/?utm_source=benzaitenlms.com&utm_medium=badge" target="_blank" rel="nofollow noopener noreferrer" class="bz-launch-badge">
-			        <img src="https://sitepatent.com/api/badge?style=classic" alt="In the SitePatent collection" loading="lazy" height="54">
-			      </a>
-			    </div>
-			  </article>
+				  <article class="bz-post-card">
+				    <a class="bz-post-card-link" href="https://benzaitenlmsblog.blogspot.com/2026/09/what-you-actually-get-with-benzaiten.html" target="_blank" rel="noopener noreferrer">
+				      <div class="bz-post-body">
+				        <span class="bz-post-tag-pill bz-tag-purple">Product Info</span>
+				        <span class="bz-post-external" aria-hidden="true">
+				          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+				        </span>
+				        <h3>What You Actually Get With Benzaiten LMS: Lifetime Access + Your Certificate</h3>
+				        <p>No subscriptions, no expiring access — enroll once and the course is yours for good, with a verifiable certificate waiting at the finish line. Here's exactly what that includes.</p>
+				        <hr class="bz-post-divider">
+				        <div class="bz-post-footer">
+				          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+				          <span>2 min read</span>
+				          <span class="bz-dot">&bull;</span>
+				          <span>Sep 1, 2026</span>
+				        </div>
+				      </div>
+				    </a>
+				  </article>
 
-			  <article class="bz-post-card">
-			    <div class="bz-post-body">
-			      <span class="bz-post-tag">Announcement</span>
-			      <h3>We're live on Product Hunt 🚀</h3>
-			      <div class="bz-post-meta">Now Live</div>
-			      <p>Benzaiten LMS is live on Product Hunt now — check out our listing and show your support!</p>
-			      <a href="https://www.producthunt.com/products/benzaitenlms?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-benzaitenlms-3" target="_blank" rel="noopener noreferrer" class="bz-launch-badge">
-			        <img alt="BenzaitenLMS - Self-paced, AI-powered LMS for IT upskilling | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1226807&amp;theme=light&amp;t=1787911068109">
-			      </a>
-			    </div>
-			  </article>
+				  <article class="bz-post-card">
+				    <a class="bz-post-card-link" href="https://benzaitenlmsblog.blogspot.com/2026/09/python-for-beginners-your-complete.html" target="_blank" rel="noopener noreferrer">
+				      <div class="bz-post-body">
+				        <span class="bz-post-tag-pill bz-tag-pink">Beginner Guide</span>
+				        <span class="bz-post-external" aria-hidden="true">
+				          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+				        </span>
+				        <h3>Python for Beginners: Your Complete Roadmap</h3>
+				        <p>A structured, no-fluff path through the fundamentals before you touch a single framework — plus why consistent hands-on coding beats passive reading every time.</p>
+				        <hr class="bz-post-divider">
+				        <div class="bz-post-footer">
+				          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+				          <span>3 min read</span>
+				          <span class="bz-dot">&bull;</span>
+				          <span>Sep 8, 2026</span>
+				        </div>
+				      </div>
+				    </a>
+				  </article>
+
+				</div>
+
+				<!--
+				=========================================================================
+				TO ADD MORE POSTS: copy one <article class="bz-post-card"> block above,
+				update the href, tag pill (bz-tag-purple / bz-tag-pink), title,
+				description, read time and date.
+				=========================================================================
+				-->
 
 			</div>
-
-			<!--
-			=========================================================================
-			TO ADD POSTS: delete the empty-state block above, then use this grid.
-			Copy one <article> block per post.
-			=========================================================================
-			<div class="bz-blog-grid">
-
-			  <article class="bz-post-card">
-			    <img src="/wp-content/uploads/2025/07/your-image.webp" alt="Post title">
-			    <div class="bz-post-body">
-			      <span class="bz-post-tag">AWS</span>
-			      <h3>Your post title goes here</h3>
-			      <div class="bz-post-meta">August 7, 2026 &middot; 4 min read</div>
-			      <p>A short one or two line summary of the article to entice readers.</p>
-			      <a class="bz-read-more" href="/blog/your-post-slug/">Read more &rarr;</a>
-			    </div>
-			  </article>
-
-			</div>
-			-->
-
+			<!-- ================= END BENZAITEN LMS BLOG ================= -->
 		</div>
-		<!-- ================= END BENZAITEN LMS BLOG ================= -->
-	</div>
 
 </main>
 
