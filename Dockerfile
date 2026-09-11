@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 # PHP settings — tuned for Moodle on Railway
 RUN mkdir -p /opt/docker/etc/php/php.ini.d \
-    && printf "max_input_vars = 5000\nmemory_limit = 512M\nupload_max_filesize = 100M\npost_max_size = 100M\nmax_execution_time = 1800\nmax_input_time = 1800\ndefault_socket_timeout = 1800\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
+    && printf "max_input_vars = 5000\nmemory_limit = 512M\nupload_max_filesize = 150M\npost_max_size = 150M\nmax_execution_time = 1800\nmax_input_time = 1800\ndefault_socket_timeout = 1800\n" > /opt/docker/etc/php/php.ini.d/moodle.ini
 # nginx timeouts for long-running requests
-RUN echo "fastcgi_read_timeout 1800s;\nfastcgi_send_timeout 1800s;\nproxy_read_timeout 1800s;\nproxy_send_timeout 1800s;\nclient_body_timeout 1800s;\nclient_max_body_size 100M;" > /opt/docker/etc/nginx/conf.d/timeouts.conf
+RUN echo "fastcgi_read_timeout 1800s;\nfastcgi_send_timeout 1800s;\nproxy_read_timeout 1800s;\nproxy_send_timeout 1800s;\nclient_body_timeout 1800s;\nclient_max_body_size 150M;" > /opt/docker/etc/nginx/conf.d/timeouts.conf
 ENV WEB_DOCUMENT_ROOT=/var/www/html
 # Download Moodle 4.5.x stable
 RUN curl -L https://download.moodle.org/download.php/direct/stable405/moodle-latest-405.tgz \
