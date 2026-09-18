@@ -60,6 +60,7 @@ RUN curl -fL -o /tmp/phpmailer.zip \
 
 COPY config.php /var/www/html/config.php.template
 COPY contact-relay.php /var/www/html/contact-relay.php
+COPY robots.txt /var/www/html/robots.txt 
 COPY smtp-diag.php /var/www/html/smtp-diag.php
 # Fix for slash-argument PHP URLs (e.g. /pluginfile.php/375/mod_scorm/content/...)
 # being misrouted to /my/ instead of reaching PHP-FPM with PATH_INFO set —
