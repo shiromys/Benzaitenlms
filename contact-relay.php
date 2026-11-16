@@ -8,7 +8,7 @@
      RESEND_API_KEY   = re_xxxxxxxxxxxxxxxxxxxxxxxxxxxx   (from resend.com)
      FROM_EMAIL        = info@benzaitenlms.com              (must be on a domain verified in Resend)
      TO_EMAIL           = info@ctekksolutions.net            (where you actually want to receive it)
-     RECAPTCHA_SECRET  = 6LcM-4AtAAAAAE1XPuYYgx6tootmqZGi2bW4UmTb
+     TURNSTILE_SECRET  = 0x4xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  (from Cloudflare Turnstile widget)
 
    After editing/uploading this file OR changing any Railway variable,
    redeploy the service so the change actually takes effect.
@@ -48,28 +48,44 @@ if ($name === '' || $email === '' || $message === '' || !filter_var($email, FILT
     exit;
 }
 
-// ---- reCAPTCHA verification --------------------------------------------
-$recaptchaSecret = getenv('RECAPTCHA_SECRET');
-$recaptchaToken  = $data['recaptcha'] ?? '';
+// ---- Cloudflare Turnstile verification ---------------------------------
+$turnstileSecret = getenv('TURNSTILE_SECRET');
+$turnstileToken  = $data['turnstileToken'] ?? '';
 
-if (empty($recaptchaToken)) {
+if (empty($turnstileToken)) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'reCAPTCHA verification missing. Please try again.']);
+    echo json_encode(['ok' => false, 'error' => 'Verification missing. Please try again.']);
     exit;
 }
 
-$verifyResponse = file_get_contents(
-    'https://www.google.com/recaptcha/api/siteverify?' . http_build_query([
-        'secret'   => $recaptchaSecret,
-        'response' => $recaptchaToken,
-        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
-    ])
-);
-$verifyResult = json_decode($verifyResponse, true);
+$verifyPayload = [
+    'secret'   => $turnstileSecret,
+    'response' => $turnstileToken,
+    'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
+];
+
+$verifyCh = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+curl_setopt_array($verifyCh, [
+    CURLOPT_POST           => true,
+    CURLOPT_POSTFIELDS     => http_build_query($verifyPayload),
+    CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_CONNECTTIMEOUT => 5,
+    CURLOPT_TIMEOUT        => 10,
+]);
+
+$verifyResponse = curl_exec($verifyCh);
+$verifyCurlError = curl_error($verifyCh);
+curl_close($verifyCh);
+
+$verifyResult = ($verifyResponse !== false && $verifyCurlError === '')
+    ? json_decode($verifyResponse, true)
+    : null;
 
 if (empty($verifyResult['success'])) {
+    error_log('Turnstile verification failed: ' . ($verifyCurlError ?: json_encode($verifyResult['error-codes'] ?? [])));
     http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'reCAPTCHA verification failed. Please try again.']);
+    echo json_encode(['ok' => false, 'error' => 'Verification failed. Please try again.']);
     exit;
 }
 
@@ -125,8 +141,6 @@ $curlError  = curl_error($ch);
 curl_close($ch);
 
 if ($curlError || $httpStatus < 200 || $httpStatus >= 300) {
-    // Log the real reason server-side so it shows up in the Railway deploy log —
-    // do NOT expose Resend's raw response to the visitor.
     error_log('Resend send failed: HTTP ' . $httpStatus . ' curl_error=' . $curlError . ' response=' . $response);
     http_response_code(502);
     echo json_encode(['ok' => false, 'error' => 'Could not send your message right now. Please email us directly.']);

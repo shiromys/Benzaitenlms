@@ -289,9 +289,10 @@ body .elementor-menu-toggle {padding: 0}
 <!--  Benzaiten LMS — Contact section (form + cross-promo columns)     -->
 <!--  Posts (as JSON) to contact-relay.php, already deployed on the    -->
 <!--  Moodle "Backend" Railway service at api.benzaitenlms.com.        -->
-<!--  Self-contained (own <style>/<script>). Now includes reCAPTCHA.   -->
+<!--  Self-contained (own <style>/<script>). Now includes Cloudflare   -->
+<!--  Turnstile (explicit render, so we can call getResponse/reset).   -->
 <!-- ================================================================= -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=bzTurnstileOnLoad&render=explicit" async defer></script>
 <section class="bz-contact-section" aria-labelledby="bz-contact-heading">
   <div class="bz-contact-columns">
     <aside class="bz-promo-card bz-promo-left">
@@ -338,7 +339,7 @@ body .elementor-menu-toggle {padding: 0}
             <textarea id="bz-message" name="message" rows="5" required></textarea>
           </div>
           <div class="bz-form-row">
-            <div class="g-recaptcha" data-sitekey="6LcM-4AtAAAAAF8l8Y92dAoslXwABpY8Swp_ZHXV"></div>
+            <div id="bz-turnstile-widget"></div>
           </div>
           <button type="submit" class="bz-submit-btn">
             <span class="bz-submit-text">Send Message</span>
@@ -451,6 +452,12 @@ body .elementor-menu-toggle {padding: 0}
   .bz-form-status.bz-err{ color:var(--e-global-color-secondary,#E40045); }
 </style>
 <script>
+window.bzTurnstileWidgetId = null;
+window.bzTurnstileOnLoad = function () {
+  window.bzTurnstileWidgetId = turnstile.render('#bz-turnstile-widget', {
+    sitekey: '0x4AAAAAAGDLYFt_QX7NNkUE'
+  });
+};
 (function () {
   var CONTACT_API_URL = 'https://api.benzaitenlms.com/contact-relay.php';
   var form = document.getElementById('bz-contact-form');
@@ -462,9 +469,11 @@ body .elementor-menu-toggle {padding: 0}
     status.textContent = '';
     status.className = 'bz-form-status';
 
-    var recaptchaToken = (typeof grecaptcha !== 'undefined') ? grecaptcha.getResponse() : '';
-    if (!recaptchaToken) {
-      status.textContent = 'Please check the "I\'m not a robot" box before sending.';
+    var turnstileToken = (typeof turnstile !== 'undefined' && window.bzTurnstileWidgetId !== null)
+      ? turnstile.getResponse(window.bzTurnstileWidgetId)
+      : '';
+    if (!turnstileToken) {
+      status.textContent = 'Please complete the verification check before sending.';
       status.className = 'bz-form-status bz-err';
       return;
     }
@@ -477,7 +486,7 @@ body .elementor-menu-toggle {padding: 0}
       email: form.querySelector('#bz-email').value,
       subject: form.querySelector('#bz-subject').value,
       message: form.querySelector('#bz-message').value,
-      recaptcha: recaptchaToken
+      turnstileToken: turnstileToken
     };
     fetch(CONTACT_API_URL, {
       method: 'POST',
@@ -489,17 +498,17 @@ body .elementor-menu-toggle {padding: 0}
           status.textContent = "Thanks! Your message has been sent, we'll get back to you soon.";
           status.className = 'bz-form-status bz-ok';
           form.reset();
-          if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+          if (typeof turnstile !== 'undefined' && window.bzTurnstileWidgetId !== null) turnstile.reset(window.bzTurnstileWidgetId);
         } else {
           status.textContent = (data && data.error) || 'Something went wrong. Please try again or email info@benzaitenlms.com directly.';
           status.className = 'bz-form-status bz-err';
-          if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+          if (typeof turnstile !== 'undefined' && window.bzTurnstileWidgetId !== null) turnstile.reset(window.bzTurnstileWidgetId);
         }
       });
     }).catch(function () {
       status.textContent = 'Something went wrong. Please try again or email info@benzaitenlms.com directly.';
       status.className = 'bz-form-status bz-err';
-      if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+      if (typeof turnstile !== 'undefined' && window.bzTurnstileWidgetId !== null) turnstile.reset(window.bzTurnstileWidgetId);
     }).finally(function () {
       btn.disabled = false;
       btn.querySelector('.bz-submit-text').textContent = prevText;
