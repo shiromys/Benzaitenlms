@@ -15,7 +15,11 @@
    ===================================================================== */
 
 // ---- CORS: allow the marketing site to call this API -----------------
-header('Access-Control-Allow-Origin: https://benzaitenlms.com');
+// Both the bare domain and the www subdomain serve the live site, so both
+// must be allowed — a visitor can land on either one.
+$allowedOrigins = ['https://benzaitenlms.com', 'https://www.benzaitenlms.com'];
+$requestOrigin  = $_SERVER['HTTP_ORIGIN'] ?? '';
+header('Access-Control-Allow-Origin: ' . (in_array($requestOrigin, $allowedOrigins, true) ? $requestOrigin : 'https://benzaitenlms.com'));
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Accept');
 
