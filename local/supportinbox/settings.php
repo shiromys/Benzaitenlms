@@ -15,8 +15,18 @@ if ($hassiteconfig) {
         'Must be Resend-verified, e.g. info@benzaitenlms.com', '', PARAM_EMAIL
     ));
 
-    $ADMIN->add('localplugins', new admin_externalpage(
-        'local_supportinbox_view', 'Support Inbox',
-        new moodle_url('/local/supportinbox/index.php'), 'local/supportinbox:manage'
+        // Top-level "Support" tab in Site administration, placed right after Users
+    // (so it sits next to Users/Courses/Grades/... instead of being buried
+    // under Local plugins).
+    $ADMIN->add('root', new admin_category(
+        'local_supportinbox_category',
+        get_string('pluginname', 'local_supportinbox')
+    ), 'courses');
+
+    $ADMIN->add('local_supportinbox_category', new admin_externalpage(
+        'local_supportinbox_view',
+        get_string('pluginname', 'local_supportinbox'),
+        new moodle_url('/local/supportinbox/index.php'),
+        'local/supportinbox:manage'
     ));
 }
