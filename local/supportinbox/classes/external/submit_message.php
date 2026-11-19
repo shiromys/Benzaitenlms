@@ -41,9 +41,27 @@ class submit_message extends external_api {
         $record->message = $params['message'];
         $record->source = $params['source'];
         $record->status = 'new';
+        $record->priority = 'normal';
         $record->timecreated = time();
+        $record->timemodified = time();
 
         $id = $DB->insert_record('local_supportinbox_messages', $record);
+        $record->id = $id;
+
+        $threadrow = (object)[
+            'ticketid' => $id,
+            'type' => 'user',
+            'author' => $params['name'],
+            'body_text' => $params['message'],
+            'body_html' => null,
+            'timecreated' => $record->timecreated,
+        ];
+        $threadrow->id = $DB->insert_record('local_supportinbox_thread', $threadrow);
+
+        // Notify the Application Nexus (or any other configured webhook
+        // consumer) that a new ticket - and its first message - exist.
+        \local_supportinbox\webhook_sender::enqueue('ticket.created', (string)$id, []);
+        \local_supportinbox\webhook_sender::enqueue('message.created', (string)$threadrow->id, []);
 
         return ['id' => $id];
     }

@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/supportinbox/db" VERSION="2026111904" COMMENT="local_supportinbox tables">
+<XMLDB PATH="local/supportinbox/db" VERSION="2026111910" COMMENT="local_supportinbox tables">
   <TABLES>
-    <TABLE NAME="local_supportinbox_messages" COMMENT="Support messages">
+    <TABLE NAME="local_supportinbox_messages" COMMENT="Support tickets (one row per ticket; the thread of individual messages lives in local_supportinbox_thread)">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true"/>
         <FIELD NAME="email" TYPE="char" LENGTH="255" NOTNULL="true"/>
         <FIELD NAME="subject" TYPE="char" LENGTH="255" NOTNULL="false"/>
-        <FIELD NAME="message" TYPE="text" NOTNULL="true"/>
-        <FIELD NAME="source" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="contact_form"/>
-        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="new"/>
-        <FIELD NAME="reply_body" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="message" TYPE="text" NOTNULL="true" COMMENT="Original message body; kept for backwards compatibility, mirrored as the first thread row"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="contact_form" COMMENT="contact_form, direct_mail, api, etc. - mapped to the Nexus 'channel' enum at the API layer"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="new" COMMENT="new, replied, resolved, closed - mapped to Nexus status enum at the API layer"/>
+        <FIELD NAME="priority" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="normal" COMMENT="low, normal, high, urgent"/>
+        <FIELD NAME="assignee" TYPE="char" LENGTH="255" NOTNULL="false" COMMENT="Moodle user id of the assigned support person, as a string, or null"/>
+        <FIELD NAME="reply_body" TYPE="text" NOTNULL="false" COMMENT="Deprecated: kept for backwards compatibility; new replies are written to local_supportinbox_thread"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Bumped on any status/priority/assignee change or new thread message"/>
         <FIELD NAME="timereplied" TYPE="int" LENGTH="10" NOTNULL="false"/>
         <FIELD NAME="timeresolved" TYPE="int" LENGTH="10" NOTNULL="false"/>
       </FIELDS>
@@ -20,6 +23,124 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
+        <INDEX NAME="timemodified" UNIQUE="false" FIELDS="timemodified"/>
+        <INDEX NAME="assignee" UNIQUE="false" FIELDS="assignee"/>
+        <INDEX NAME="email" UNIQUE="false" FIELDS="email"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_supportinbox_thread" COMMENT="Individual messages (user message, agent reply, internal note) within a ticket">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="ticketid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="20" NOTNULL="true" COMMENT="user, reply, note"/>
+        <FIELD NAME="author" TYPE="char" LENGTH="255" NOTNULL="true" COMMENT="Display name or id of the sender: the end user's name, or the support agent's X-Nexus-Agent / Moodle user id"/>
+        <FIELD NAME="body_text" TYPE="text" NOTNULL="true"/>
+        <FIELD NAME="body_html" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="ticketid" TYPE="foreign" FIELDS="ticketid" REFTABLE="local_supportinbox_messages" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ticketid_timecreated" UNIQUE="false" FIELDS="ticketid, timecreated"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_supportinbox_apikeys" COMMENT="Scoped bearer keys issued to external callers (e.g. Application Nexus), one per app per environment">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="label" TYPE="char" LENGTH="255" NOTNULL="true" COMMENT="e.g. 'Application Nexus - production'"/>
+        <FIELD NAME="environment" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="staging" COMMENT="staging or production"/>
+        <FIELD NAME="keyhash" TYPE="char" LENGTH="64" NOTNULL="true" COMMENT="sha256 hex digest of the raw key; the raw key itself is never stored"/>
+        <FIELD NAME="keyprefix" TYPE="char" LENGTH="16" NOTNULL="true" COMMENT="First characters of the raw key, shown in the admin UI so a key can be identified without re-displaying the secret"/>
+        <FIELD NAME="scope" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="support" COMMENT="Reserved for future scopes; currently always 'support'"/>
+        <FIELD NAME="ipallowlist" TYPE="char" LENGTH="1000" NOTNULL="false" COMMENT="Comma-separated list of allowed caller IPs; empty = not enforced"/>
+        <FIELD NAME="revoked" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="createdby" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="timerevoked" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="lastusedtime" TYPE="int" LENGTH="10" NOTNULL="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="keyhash" UNIQUE="true" FIELDS="keyhash"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_supportinbox_idempotency" COMMENT="Caches the response for a given (api key, Idempotency-Key) pair so retried writes are never applied twice">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="apikeyid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="idempotencykey" TYPE="char" LENGTH="255" NOTNULL="true"/>
+        <FIELD NAME="requesthash" TYPE="char" LENGTH="64" NOTNULL="true" COMMENT="sha256 of method+path+body, to detect a key being reused for a different request"/>
+        <FIELD NAME="statuscode" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="responsebody" TYPE="text" NOTNULL="true"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="apikeyid_idempotencykey" UNIQUE="true" FIELDS="apikeyid, idempotencykey"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_supportinbox_ratelimit" COMMENT="Per-key, per-60-second-window request counter">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="apikeyid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="windowstart" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="requestcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="apikeyid_windowstart" UNIQUE="true" FIELDS="apikeyid, windowstart"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_supportinbox_auditlog" COMMENT="Every call made against the /support/v1 API, for traceability back to a support agent">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="apikeyid" TYPE="int" LENGTH="10" NOTNULL="false"/>
+        <FIELD NAME="agent" TYPE="char" LENGTH="255" NOTNULL="false" COMMENT="Value of the X-Nexus-Agent header"/>
+        <FIELD NAME="method" TYPE="char" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="path" TYPE="char" LENGTH="255" NOTNULL="true"/>
+        <FIELD NAME="statuscode" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="ip" TYPE="char" LENGTH="45" NOTNULL="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="timecreated" UNIQUE="false" FIELDS="timecreated"/>
+        <INDEX NAME="apikeyid" UNIQUE="false" FIELDS="apikeyid"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_supportinbox_webhookqueue" COMMENT="Outbound webhook deliveries to the Nexus, with retry/backoff">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="event" TYPE="char" LENGTH="50" NOTNULL="true" COMMENT="ticket.created, ticket.updated, message.created, user.deleted"/>
+        <FIELD NAME="objectid" TYPE="char" LENGTH="255" NOTNULL="true"/>
+        <FIELD NAME="payload" TYPE="text" NOTNULL="true"/>
+        <FIELD NAME="attempts" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="nextattempttime" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="pending" COMMENT="pending, sent, failed"/>
+        <FIELD NAME="lasterror" TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="status_nextattempttime" UNIQUE="false" FIELDS="status, nextattempttime"/>
       </INDEXES>
     </TABLE>
   </TABLES>

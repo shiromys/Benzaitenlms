@@ -29,4 +29,16 @@ if ($hassiteconfig) {
         new moodle_url('/local/supportinbox/index.php'),
         'local/supportinbox:manage'
     ));
+
+    // "Support API keys" page: where an admin generates/revokes the scoped
+    // bearer key an external caller such as the Application Nexus uses
+    // against /support/v1. Gated on its own capability (local/supportinbox:
+    // managekeys), not :manage, since minting a key is a higher-trust action
+    // than reading and replying to tickets.
+    $ADMIN->add('local_supportinbox_category', new admin_externalpage(
+        'local_supportinbox_keys',
+        get_string('apikeys', 'local_supportinbox'),
+        new moodle_url('/local/supportinbox/keys.php'),
+        'local/supportinbox:managekeys'
+    ));
 }

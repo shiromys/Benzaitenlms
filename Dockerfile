@@ -68,6 +68,9 @@ COPY local/supportinbox /var/www/html/local/supportinbox
 # see 05-pathinfo.conf for the full explanation. Loaded before the base
 # image's own 10-php.conf so plain *.php requests are unaffected.
 COPY 05-pathinfo.conf /opt/docker/etc/nginx/vhost.common.d/05-pathinfo.conf
+# Clean /support/v1/* path alias for the Application Nexus Support API —
+# see 06-support-api.conf for the full explanation.
+COPY 06-support-api.conf /opt/docker/etc/nginx/vhost.common.d/06-support-api.conf
 RUN chown -R application:application /var/www/html
 RUN mkdir -p /moodledata
 RUN cat > /usr/local/bin/init.sh << 'EOF'
