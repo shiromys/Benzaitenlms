@@ -1,0 +1,68 @@
+<?php
+require_once(__DIR__ . '/../../config.php');
+require_login();
+
+$context = context_system::instance();
+require_capability('local/supportinbox:manage', $context);
+
+$id = required_param('id', PARAM_INT);
+$message = $DB->get_record('local_supportinbox_messages', ['id' => $id], '*', MUST_EXIST);
+
+$PAGE->set_url('/local/supportinbox/reply.php', ['id' => $id]);
+$PAGE->set_context($context);
+$PAGE->set_title('Reply to ' . $message->email);
+
+if (optional_param('submit', 0, PARAM_BOOL) && confirm_sesskey()) {
+    $replytext = required_param('replytext', PARAM_RAW);
+
+    $apikey = get_config('local_supportinbox', 'resend_api_key');
+    $from = get_config('local_supportinbox', 'from_email');
+
+    $payload = json_encode([
+        'from'    => "Support <{$from}>",
+        'to'      => [$message->email],
+        'subject' => 'Re: ' . $message->subject,
+        'text'    => $replytext,
+    ]);
+
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $apikey,
+            'Content-Type: application/json',
+        ],
+        CURLOPT_TIMEOUT => 15,
+    ]);
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlerror = curl_error($ch);
+    curl_close($ch);
+
+    if (!$curlerror && $httpcode >= 200 && $httpcode < 300) {
+        $message->status = 'replied';
+        $message->reply_body = $replytext;
+        $message->timereplied = time();
+        $DB->update_record('local_supportinbox_messages', $message);
+        redirect(new moodle_url('/local/supportinbox/index.php'), 'Reply sent.');
+    } else {
+        error_log('local_supportinbox: Resend reply failed, HTTP ' . $httpcode . ' curl_error=' . $curlerror . ' response=' . $response);
+        \core\notification::error('Could not send reply. Check the server log.');
+    }
+}
+
+echo $OUTPUT->header();
+echo $OUTPUT->heading('Reply to ' . s($message->name) . ' &lt;' . s($message->email) . '&gt;');
+echo html_writer::tag('p', '<strong>Original message:</strong><br>' . nl2br(s($message->message)));
+
+echo html_writer::start_tag('form', ['method' => 'post']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+echo html_writer::tag('textarea', '', ['name' => 'replytext', 'rows' => 8, 'style' => 'width:100%']);
+echo html_writer::empty_tag('input', [
+    'type' => 'submit', 'name' => 'submit', 'value' => 'Send reply', 'class' => 'btn btn-primary mt-2',
+]);
+echo html_writer::end_tag('form');
+
+echo $OUTPUT->footer();

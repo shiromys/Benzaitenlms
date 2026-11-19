@@ -151,4 +151,19 @@ if ($curlError || $httpStatus < 200 || $httpStatus >= 300) {
     exit;
 }
 
+$supportInboxToken = getenv('SUPPORTINBOX_WSTOKEN');
+if (!empty($supportInboxToken)) {
+    $wsUrl = 'https://api.benzaitenlms.com/webservice/rest/server.php?' . http_build_query([
+        'wstoken' => $supportInboxToken,
+        'wsfunction' => 'local_supportinbox_submit_message',
+        'moodlewsrestformat' => 'json',
+        'name' => $name, 'email' => $email, 'subject' => $emailSubject,
+        'message' => $message, 'source' => 'contact_form',
+    ]);
+    $wsCh = curl_init($wsUrl);
+    curl_setopt_array($wsCh, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true]);
+    curl_exec($wsCh);
+    curl_close($wsCh);
+}
+
 echo json_encode(['ok' => true]);

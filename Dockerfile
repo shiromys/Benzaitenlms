@@ -62,6 +62,7 @@ COPY config.php /var/www/html/config.php.template
 COPY contact-relay.php /var/www/html/contact-relay.php
 COPY robots.txt /var/www/html/robots.txt 
 COPY smtp-diag.php /var/www/html/smtp-diag.php
+COPY local/supportinbox /var/www/html/local/supportinbox
 # Fix for slash-argument PHP URLs (e.g. /pluginfile.php/375/mod_scorm/content/...)
 # being misrouted to /my/ instead of reaching PHP-FPM with PATH_INFO set —
 # see 05-pathinfo.conf for the full explanation. Loaded before the base

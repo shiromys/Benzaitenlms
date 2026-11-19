@@ -1,0 +1,4 @@
+.supportinbox-table tr.status-new      { background-color: #fdecea; }
+.supportinbox-table tr.status-replied  { background-color: #fff8e1; }
+.supportinbox-table tr.status-resolved { background-color: #e8f5e9; }
+.supportinbox-table td { vertical-align: top; padding: 8px; }
