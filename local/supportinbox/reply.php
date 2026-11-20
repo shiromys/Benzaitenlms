@@ -1,15 +1,13 @@
 <?php
 require_once(__DIR__ . '/../../config.php');
-require_login();
-
-$context = context_system::instance();
-require_capability('local/supportinbox:manage', $context);
 
 $id = required_param('id', PARAM_INT);
+
+admin_externalpage_setup('local_supportinbox_view');
+
 $message = $DB->get_record('local_supportinbox_messages', ['id' => $id], '*', MUST_EXIST);
 
 $PAGE->set_url('/local/supportinbox/reply.php', ['id' => $id]);
-$PAGE->set_context($context);
 $PAGE->set_title('Reply to ' . $message->email);
 
 if (optional_param('submit', 0, PARAM_BOOL) && confirm_sesskey()) {
