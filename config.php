@@ -18,8 +18,11 @@ $CFG->dboptions = array(
     'dbcollation' => 'utf8mb4_unicode_ci',
 );
 
-// Site URL
-$CFG->wwwroot      = 'https://api.benzaitenlms.com';
+// Site URL — MOODLE_WWWROOT_HOST is set explicitly per Railway service
+// (see Dockerfile init.sh); it falls back to Railway's own per-service
+// RAILWAY_PUBLIC_DOMAIN, and then to the production domain, so staging
+// and production never again resolve to the same wwwroot.
+$CFG->wwwroot      = 'https://${MOODLE_WWWROOT_HOST}';
 
 // SSL & proxy settings
 $CFG->sslproxy     = true;

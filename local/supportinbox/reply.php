@@ -1,15 +1,13 @@
 <?php
 require_once(__DIR__ . '/../../config.php');
-require_login();
-
-$context = context_system::instance();
-require_capability('local/supportinbox:manage', $context);
 
 $id = required_param('id', PARAM_INT);
+
+admin_externalpage_setup('local_supportinbox_view');
+
 $message = $DB->get_record('local_supportinbox_messages', ['id' => $id], '*', MUST_EXIST);
 
 $PAGE->set_url('/local/supportinbox/reply.php', ['id' => $id]);
-$PAGE->set_context($context);
 $PAGE->set_title('Reply to ' . $message->email);
 
 if (optional_param('submit', 0, PARAM_BOOL) && confirm_sesskey()) {
@@ -45,7 +43,27 @@ if (optional_param('submit', 0, PARAM_BOOL) && confirm_sesskey()) {
         $message->status = 'replied';
         $message->reply_body = $replytext;
         $message->timereplied = time();
+        // Nexus Support API: keep this manual-reply path in step with what
+        // POST /tickets/{id}/messages does, so a reply sent from this admin
+        // page is just as visible to the Application Nexus as one sent
+        // through the API - same timemodified bump, same thread row, same
+        // webhook notification.
+        $message->timemodified = time();
         $DB->update_record('local_supportinbox_messages', $message);
+
+        $threadrow = (object)[
+            'ticketid'   => $message->id,
+            'type'       => 'reply',
+            'author'     => fullname($USER),
+            'body_text'  => $replytext,
+            'body_html'  => null,
+            'timecreated' => time(),
+        ];
+        $threadrow->id = $DB->insert_record('local_supportinbox_thread', $threadrow);
+
+        \local_supportinbox\webhook_sender::enqueue('message.created', (string)$threadrow->id, []);
+        \local_supportinbox\webhook_sender::enqueue('ticket.updated', (string)$message->id, []);
+
         redirect(new moodle_url('/local/supportinbox/index.php'), 'Reply sent.');
     } else {
         error_log('local_supportinbox: Resend reply failed, HTTP ' . $httpcode . ' curl_error=' . $curlerror . ' response=' . $response);

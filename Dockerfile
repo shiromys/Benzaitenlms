@@ -77,7 +77,8 @@ RUN cat > /usr/local/bin/init.sh << 'EOF'
 #!/bin/bash
 set -e
 echo "[startup] Rendering config.php from template..."
-envsubst '${MYSQLHOST} ${MYSQLDATABASE} ${MYSQLUSER} ${MYSQLPASSWORD} ${MYSQLPORT} ${RAILWAY_PUBLIC_DOMAIN}' \
+export MOODLE_WWWROOT_HOST="${MOODLE_WWWROOT_HOST:-${RAILWAY_PUBLIC_DOMAIN:-api.benzaitenlms.com}}"
+envsubst '${MYSQLHOST} ${MYSQLDATABASE} ${MYSQLUSER} ${MYSQLPASSWORD} ${MYSQLPORT} ${MOODLE_WWWROOT_HOST}' \
   < /var/www/html/config.php.template > /var/www/html/config.php
 chown application:application /var/www/html/config.php
 echo "[startup] Verifying config.php syntax..."
